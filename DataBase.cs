@@ -11,127 +11,22 @@ namespace MusicMetadataOrganizer
     public class DataBase
     {
         string ConnectionString = "";
-        //SqlConnection myConnection;
 
         public DataBase(string connStr)
         {
             this.ConnectionString = connStr;
         }
 
-        /*
-        // The first, hardcoded method
-        public void InsertData()
-        {
-            // Pass in variables instead of hardcoding
-            string sql = "INSERT INTO dbo.SystemIOFields " +
-                "(Filepath, Name, Directory, Extension, CreationTime, LastAccessTime, Length) " +
-                "VALUES (@Filepath,@Name,@Directory,@Extension,@CreationTime,@LastAccessTime,@Length);";
-
-            using (SqlCommand cmd = new SqlCommand(sql, myConnection))
-            {
-                cmd.Parameters.AddWithValue("@Filepath", "filepath");
-                cmd.Parameters.AddWithValue("@Name", "test name");
-                cmd.Parameters.AddWithValue("@Directory", "testdirectory");
-                cmd.Parameters.AddWithValue("@Extension", ".mp3");
-                cmd.Parameters.AddWithValue("@CreationTime", "20171016");
-                cmd.Parameters.AddWithValue("@LastAccessTime", "20171016");
-                cmd.Parameters.AddWithValue("@Length", 16);
-
-                try
-                {
-                    myConnection = new SqlConnection(ConnectionString);
-                    myConnection.Open();
-                    cmd.Connection = myConnection;
-                    int result = cmd.ExecuteNonQuery();
-                    if (result < 0)
-                        Console.WriteLine("Error inserting data into Database");
-                }
-                catch (SqlException ex) 
-                {
-                    Console.WriteLine("Could not write to database. - " + ex.Message);
-                }
-            }
-        }
-        */
-
-            /*
         public void InsertData(MasterFile file)
         {
-
-            string sqlStatement = $"INSERT INTO {table} (";
-            string sqlColumns = "";
-            string sqlValues = "";
-
-            for (int i = 0; i < columns.Length; i++)
-            {
-                if (!IsValidInput(columns[i]) || !IsValidInput(values[i]))
-                {
-                    throw new ArgumentException("The data to insert in the database does not pass validation. " +
-                        $"{columns[i]} --- {values[i]} failed validation.");
-                }
-
-                if (i == columns.Length - 1)
-                {
-                    sqlColumns += $"{columns[i]}";
-                    sqlValues += $"{values[i]}";
-                }
-
-                else
-                {
-                    sqlColumns += $"{columns[i]}, ";
-                    sqlValues += $"{values[i]},";
-                }
-            }
-
-            // Pass in variables instead of hardcoding
-            string sql = $"INSERT INTO {table} " +
-                $"({sqlColumns}) VALUES ({sqlValues});";
-
-            using (SqlCommand cmd = new SqlCommand(sql, myConnection))
-            {
-                
-                cmd.Parameters.AddWithValue("@Filepath", "filepath");
-                cmd.Parameters.AddWithValue("@Name", "test name");
-                cmd.Parameters.AddWithValue("@Directory", "testdirectory");
-                cmd.Parameters.AddWithValue("@Extension", ".mp3");
-                cmd.Parameters.AddWithValue("@CreationTime", "20171016");
-                cmd.Parameters.AddWithValue("@LastAccessTime", "20171016");
-                cmd.Parameters.AddWithValue("@Length", 16);
-                
-
-                try
-                {
-                    myConnection = new SqlConnection(ConnectionString);
-                    myConnection.Open();
-                    cmd.Connection = myConnection;
-                    int result = cmd.ExecuteNonQuery();
-                    if (result < 0)
-                        Console.WriteLine("Error inserting data into Database");
-                }
-                catch (SqlException ex)
-                {
-                    Console.WriteLine("Could not write to database. - " + ex.Message);
-                }
-            }
-        }
-*/
-        public void InsertData(MasterFile file)
-        {
-            foreach (var item in file.TagLibProps)
-            {
-
-            }
-            foreach (var item in file.SysIOProps)
-            {
-
-            }
-            //IsMatchingType(file, "SystemIOFields", "Extension");
-            ConstructSqlCommand();
-            // ExecuteSqlCommand();
+            var cmds = ConstructSqlCommands(file);
+            ExecuteSqlCommands(cmds);
         }
 
+        // Not currently using
         private bool IsValidInput(string sqlInput)
         {
+            var isValidInput = true;
             string textPattern = "(''|[^'])*";
             string semiColonPattern = ";";
             string sqlStatementPattern = "\b(ALTER|CREATE|DELETE|DROP|EXEC(UTE){0,1}" +
@@ -142,57 +37,104 @@ namespace MusicMetadataOrganizer
 
             // Fix this so it's not the only one opposite
             if (!textBlocks.IsMatch(sqlInput))
-                return false;
+                isValidInput = false;
             if (statementBreaks.IsMatch(sqlInput))
-            {
-                return false;
-            }
+                isValidInput = false;
             if (sqlStatements.IsMatch(sqlInput))
-            {
-                return false;
-            }
-            else return true;
+                isValidInput = false;
+            return isValidInput;
         }
 
-        /*
-        private bool IsMatchingType(MasterFile file, string table, object property)
+        private SqlCommand[] ConstructSqlCommands(MasterFile file)
         {
-            if (!IsValidInput(table) || !IsValidInput(property.ToString()))
-                throw new ArgumentException("Cannot check for matching types. Input parameters failed validation.");
-            
+            SqlCommand cmd1 = ConstructSqlCmdTagLib(file.TagLibProps);
+            SqlCommand cmd2 = ConstructSqlCmdSysIO(file.SysIOProps);
+            return new SqlCommand[] { cmd1, cmd2 };
+        }
 
-            using (SqlConnection conn = new SqlConnection(ConnectionString))
+        private static SqlCommand ConstructSqlCmdTagLib(Dictionary<string, object> tagLibProps)
+        {
+            var tagLibSql = "INSERT INTO dbo.TagLibFields " +
+                        "(BitRate, MediaType, Artist, Album, Genres, Lyrics, Title, Track, Year, Rating, IsCover, IsLive) " +
+                        "VALUES (@BitRate,@MediaType,@Artist,@Album,@Genres,@Lyrics,@Title,@Track,@Year,@Rating,@IsCover,@IsLive);";
+
+            SqlCommand cmd = new SqlCommand(tagLibSql);
+
+            cmd.Parameters.AddWithValue("@BitRate", Convert.ToInt32(tagLibProps["BitRate"]));
+            cmd.Parameters.AddWithValue("@MediaType", tagLibProps["MediaType"].ToString());
+            cmd.Parameters.AddWithValue("@Artist", tagLibProps["Artist"].ToString());
+            cmd.Parameters.AddWithValue("@Album", tagLibProps["Album"].ToString());
+            cmd.Parameters.AddWithValue("@Genres", tagLibProps["Genres"].ToString());
+            cmd.Parameters.AddWithValue("@Lyrics", tagLibProps["Lyrics"].ToString());
+            cmd.Parameters.AddWithValue("@Title", tagLibProps["Title"].ToString());
+            // May not need this null check... If null, value is assigned '0' when I checked
+            try
             {
-                using (SqlCommand cmd = new SqlCommand("SELECT 1 FROM " + table +  Table = @table " WHERE Prop = @prop", conn))
-                {
-                    //cmd.Parameters.AddWithValue("@table", table);
-                    cmd.Parameters.AddWithValue("@prop", property.ToString());
-                    conn.Open();
-                    var found = (int)cmd.ExecuteScalar();
+                cmd.Parameters.AddWithValue("@Track", Convert.ToInt32(tagLibProps["Track"]));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                cmd.Parameters.AddWithValue("@Track", null);
+            }
+            cmd.Parameters.AddWithValue("@Year", Convert.ToInt32(tagLibProps["Year"]));
+            cmd.Parameters.AddWithValue("@Rating", (byte)tagLibProps["Rating"]);
+            if ((bool)tagLibProps["IsCover"] == true)
+                cmd.Parameters.AddWithValue("@IsCover", 1);
+            else
+                cmd.Parameters.AddWithValue("@IsCover", 0);
+            if ((bool)tagLibProps["IsLive"] == true)
+                cmd.Parameters.AddWithValue("@IsLive", 1);
+            else
+                cmd.Parameters.AddWithValue("@IsLive", 0);
+            return cmd;
+        }
 
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+        private static SqlCommand ConstructSqlCmdSysIO(Dictionary<string, object> sysIOProps)
+        {
+            var sysIOSql = "INSERT INTO dbo.SystemIOFields " +
+                             "(Filepath, Name, Directory, Extension, CreationTime, LastAccessTime, Length) " +
+                             "VALUES (@Filepath,@Name,@Directory,@Extension,@CreationTime,@LastAccessTime,@Length);";
+            SqlCommand cmd = new SqlCommand(sysIOSql);
+
+            cmd.Parameters.AddWithValue("@Filepath", sysIOProps["Filepath"].ToString());
+            cmd.Parameters.AddWithValue("@Name", sysIOProps["Name"].ToString());
+            cmd.Parameters.AddWithValue("@Directory", sysIOProps["Directory"].ToString());
+            cmd.Parameters.AddWithValue("@Extension", sysIOProps["Extension"].ToString());
+            cmd.Parameters.AddWithValue("@CreationTime", Convert.ToDateTime(sysIOProps["CreationTime"]));
+            cmd.Parameters.AddWithValue("@LastAccessTime", Convert.ToDateTime(sysIOProps["LastAccessTime"]));
+            cmd.Parameters.AddWithValue("@Length", (long)sysIOProps["Length"]);
+            return cmd;
+        }
+
+        private void ExecuteSqlCommands(SqlCommand[] sqlCommands)
+        {
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            {
+                if (connection.State == System.Data.ConnectionState.Closed)
+                {
+                    connection.Open();
+                }
+                SqlTransaction transaction = connection.BeginTransaction();
+                try
+                {
+                    foreach (var cmd in sqlCommands)
                     {
-                        while (reader.Read())
+                        using (cmd)
                         {
-                            
+                            cmd.Connection = connection;
+                            cmd.Transaction = transaction;
+                            cmd.ExecuteNonQuery();
                         }
                     }
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine(ex.ToString());
                 }
             }
-            // Check types against what the db expects
-            return false;
-        }
-        */
-
-        private string ConstructSqlCommand()
-        {
-            return "";
-            // Construct the sql query
-        }
-
-        private void ExecuteSqlCommand(string sqlCommand)
-        {
-            // Execute the sql command
         }
     }
 }

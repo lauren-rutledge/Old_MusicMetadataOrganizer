@@ -39,10 +39,9 @@ namespace MusicMetadataOrganizer
             {
                 TagLibFile = TagLib.File.Create(Filepath);
             }
-            catch (IOException)
+            catch (IOException ex)
             {
-                // Also write to log
-                Console.WriteLine("IOException");
+                var log = new LogWriter($"Could not create a TagLibFile object from {Filepath}. \"{ex.Message}\"");
             }
             catch (Exception ex)
             {
@@ -58,12 +57,14 @@ namespace MusicMetadataOrganizer
                 SysIOFile = new FileInfo(Filepath);
             }
             // Write to log on catch
-            catch (DirectoryNotFoundException)
+            catch (DirectoryNotFoundException ex)
             {
+                var log = new LogWriter($"Could not create a TagLibFile object from {Filepath}. \"{ex.Message}\"");
                 throw new DirectoryNotFoundException("Invalid directory.");
             }
-            catch (FileNotFoundException)
+            catch (FileNotFoundException ex)
             {
+                var log = new LogWriter($"Could not create a TagLibFile object from {Filepath}. \"{ex.Message}\"");
                 throw new FileNotFoundException("Could not locate " + Filepath + ".");
             }
         }
@@ -125,7 +126,6 @@ namespace MusicMetadataOrganizer
 
                 if (TagLibProps.TryGetValue("Artist", out object value))
                 {
-                    // Check songs with a populated original artist field to make sure I didn't fuck up this bool check
                     if (!String.IsNullOrEmpty(originalArtist) && originalArtist != value.ToString())
                         isCover = true;
                 }
