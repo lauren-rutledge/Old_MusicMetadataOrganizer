@@ -32,7 +32,6 @@ namespace MusicMetadataOrganizer
                 _directory = folderBrowser.SelectedPath;
             else
                 Environment.Exit(1);
-                //throw new DirectoryNotFoundException("Invalid directory.");
         }
 
         public void ExtractFiles(string directory)
@@ -54,8 +53,8 @@ namespace MusicMetadataOrganizer
         static string[] mediaExtensions = 
         {
             ".AAC", ".AIFF", ".APE", ".ASF", ".AA", ".AAX", ".FLAC", ".MKA", ".M4A", ".MP3",
-            ".MPEG", ".MPC", ".OGG", ".RIFF", ".WV", ".MKV", ".MP4", ".AVI"
-                // Add .MPG back in 
+            ".MPC", ".OGG", ".RIFF", ".WV", ".MKV", ".MP4"
+            // Took out .MPG, .MPEG, & .AVI
         };
 
         static bool IsMediaFile(string path)

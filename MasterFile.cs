@@ -24,6 +24,8 @@ namespace MusicMetadataOrganizer
         {
             this.Filepath = filepath;
             CreateTagLibFile();
+            if (TagLibFile == null)
+                return;
             CreateSysIOFile();
 
             TagLibProps = new Dictionary<string, object>();
@@ -46,6 +48,7 @@ namespace MusicMetadataOrganizer
             catch (Exception ex)
             {
                 var log = new LogWriter($"Could not create a TagLibFile object from {Filepath}. \"{ex.Message}\"");
+                return;
                 // Maybe should move the file into an 'error folder' 
             }
         }
@@ -79,6 +82,7 @@ namespace MusicMetadataOrganizer
 
         private void PopulateTagLibFields()
         {
+            TagLibProps.Add("Filepath", TagLibFile.Name);
             TagLibProps.Add("BitRate", TagLibFile.Properties.AudioBitrate);
             TagLibProps.Add("MediaType", TagLibFile.Properties.MediaTypes.ToString());
             TagLibProps.Add("Artist", TagLibFile.Tag.FirstAlbumArtist ?? "Unknown");
@@ -180,14 +184,15 @@ namespace MusicMetadataOrganizer
             return Equals((MasterFile)obj);
         }
 
-        //public bool Equals(MasterFile obj)
-        //{
-        //    if (obj.Artist != this.Artist || obj.Album != this.Album || obj.Length != this.Length
-        //        || obj.Track != this.Track || obj.BitRate != this.BitRate || obj.IsLive != this.IsLive
-        //        || obj.IsCover != this.IsCover)
-        //        return false;
-        //    else return true;
-        //}
+        public bool Equals(MasterFile obj)
+        {
+            if (obj.TagLibProps["Artist"] != this.TagLibProps["Artist"] || obj.TagLibProps["Album"] != this.TagLibProps["Album"] 
+                || obj.TagLibProps["Length"] != this.TagLibProps["Length"] || obj.TagLibProps["Track"] != this.TagLibProps["Track"] 
+                || obj.TagLibProps["BitRate"] != this.TagLibProps["BitRate"] || obj.TagLibProps["IsLive"] != this.TagLibProps["IsLive"]
+                || obj.TagLibProps["IsCover"] != this.TagLibProps["IsCover"])
+                return false;
+            else return true;
+        }
 
         public override int GetHashCode()
         {

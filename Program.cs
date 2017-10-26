@@ -21,17 +21,19 @@ namespace MusicMetadataOrganizer
         [STAThread]
         static void Main(string[] args)
         {
+            /*
             MasterFile mf = new MasterFile(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
             DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
                                         "Initial Catalog=MusicMetadata;" +
                                         "Integrated Security=True");
             db.InsertData(mf);           
-            
+            */
+
             //var file1 = new MasterFile(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
             //var file2 = new MasterFile(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
 
             //Console.WriteLine(file1.Equals(file2));
-
+             
 
             //TagLib.CombinedTag tag = new CombinedTag(file1.TagLibFile.Tag);
 
@@ -55,7 +57,7 @@ namespace MusicMetadataOrganizer
             {
                 System.IO.File.Move(f, Path.Combine(@"D:\NewFolder", new FileInfo(f).Name));
             }
-
+            */
             var spinner = new ConsoleSpinner();
 
             var searcher = new FileSearcher();
@@ -65,11 +67,23 @@ namespace MusicMetadataOrganizer
             searcher.ExtractFiles(searcher.Directory);
             spinner.Stop();
 
+            DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
+                                        "Initial Catalog=MusicMetadata;" +
+                                        "Integrated Security=True");
+
+            db.DeleteAllRecords();
+
+
             foreach (var file in searcher.files)
             {
+                if (db.Contains(file))
+                {
+                    Console.WriteLine(file.ToString() + " is already in the database.");
+                    break;
+                }
+                db.InsertData(file);
                 Console.WriteLine(file.ToString());
-            }
-            */
+            }   
         }
     }
 }
