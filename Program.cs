@@ -21,13 +21,13 @@ namespace MusicMetadataOrganizer
         [STAThread]
         static void Main(string[] args)
         {
-            /*
             MasterFile mf = new MasterFile(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
             DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
                                         "Initial Catalog=MusicMetadata;" +
                                         "Integrated Security=True");
-            db.InsertData(mf);           
-            */
+            db.InsertSelectUpdateDeleteRecord(mf, StatementType.Delete);
+            //db.InsertSelectUpdateDeleteRecord(mf, "INSERT");
+
 
             //var file1 = new MasterFile(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
             //var file2 = new MasterFile(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
@@ -58,21 +58,22 @@ namespace MusicMetadataOrganizer
                 System.IO.File.Move(f, Path.Combine(@"D:\NewFolder", new FileInfo(f).Name));
             }
             */
-            var spinner = new ConsoleSpinner();
+            //var spinner = new ConsoleSpinner();
 
-            var searcher = new FileSearcher();
-            searcher.SelectDirectory();
+            //var searcher = new FileSearcher();
+            //searcher.SelectDirectory();
 
-            spinner.Start();
-            searcher.ExtractFiles(searcher.Directory);
-            spinner.Stop();
+            //spinner.Start();
+            //searcher.ExtractFiles(searcher.Directory);
+            //spinner.Stop();
 
-            DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
-                                        "Initial Catalog=MusicMetadata;" +
-                                        "Integrated Security=True");
+            //DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
+            //                            "Initial Catalog=MusicMetadata;" +
+            //                            "Integrated Security=True");
 
-            db.DeleteAllRecords();
-
+            
+            //db.DeleteAllRecords();
+            /*
 
             foreach (var file in searcher.files)
             {
@@ -83,7 +84,8 @@ namespace MusicMetadataOrganizer
                 }
                 db.InsertData(file);
                 Console.WriteLine(file.ToString());
-            }   
+            } 
+            */
         }
     }
 }
