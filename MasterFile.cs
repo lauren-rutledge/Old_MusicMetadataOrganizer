@@ -20,7 +20,7 @@ namespace MusicMetadataOrganizer
         private TagLib.File TagLibFile { get; set; }
         private FileInfo SysIOFile { get; set; }
 
-        public MasterFile(string filepath)
+        private MasterFile(string filepath)
         {
             this.Filepath = filepath;
             CreateTagLibFile();
@@ -33,7 +33,30 @@ namespace MusicMetadataOrganizer
             PopulateFields();
         }
 
-        // TO-DO: Create another constructor that takes db data as params
+        private MasterFile(Dictionary<string, object>[] properties)
+        {
+            TagLibProps = properties[0];
+            SysIOProps = properties[1];
+            Filepath = TagLibProps["Filepath"].ToString();
+        }
+
+        // Change this to check for null taglib file or sysio file objects, not null filepath
+        public static MasterFile GetMasterFileFromFilepath(string filepath)
+        {
+            if (!String.IsNullOrEmpty(filepath))
+                return new MasterFile(filepath);
+            else return null;
+        }
+
+        public static MasterFile GetMasterFileFromDB(Dictionary<string, object>[] properties)
+        {
+            foreach (var collection in properties)
+            {
+                if (collection == null || collection.Count == 0)
+                    return null;
+            }
+            return new MasterFile(properties);
+        }
 
         private void CreateTagLibFile()
         {
@@ -59,7 +82,6 @@ namespace MusicMetadataOrganizer
             {
                 SysIOFile = new FileInfo(Filepath);
             }
-            // Write to log on catch
             catch (DirectoryNotFoundException ex)
             {
                 var log = new LogWriter($"Could not create a TagLibFile object from {Filepath}. \"{ex.Message}\"");
@@ -71,7 +93,7 @@ namespace MusicMetadataOrganizer
                 throw new FileNotFoundException("Could not locate " + Filepath + ".");
             }
         }
-        
+
         private void PopulateFields()
         {
             if (TagLibFile != null)
@@ -103,6 +125,7 @@ namespace MusicMetadataOrganizer
             TagLibProps.Add("Rating", GetRating(TagLibFile));
             TagLibProps.Add("IsCover", IsCover(TagLibFile));
             TagLibProps.Add("IsLive", IsLive(TagLibFile));
+            TagLibProps.Add("Duration", TagLibFile.Properties.Duration);
         }
 
         private byte GetRating(TagLib.File file)
@@ -122,24 +145,47 @@ namespace MusicMetadataOrganizer
         private bool IsCover(TagLib.File file)
         {
             var isCover = false;
-            try
+            var originalArtist = "";
+            var tagType = file.TagTypes.ToString();
+            
+            if (tagType.Contains("Id3v2"))
             {
-                var tag = file.GetTag(TagLib.TagTypes.Id3v2);
-                var frame = TagLib.Id3v2.TextInformationFrame.Get((TagLib.Id3v2.Tag)tag, "TOPE", true);
-                var originalArtist = frame.ToString();
-
-                if (TagLibProps.TryGetValue("Artist", out object value))
+                if (file is TagLib.Matroska.File)
                 {
-                    if (!String.IsNullOrEmpty(originalArtist) && originalArtist != value.ToString())
-                        isCover = true;
+                    return isCover;
                 }
-                return isCover;
+            var id3v2Tag = file.GetTag(TagLib.TagTypes.Id3v2);
+            var frame = TagLib.Id3v2.TextInformationFrame.Get((TagLib.Id3v2.Tag)id3v2Tag, "TOPE", true);
+            originalArtist = frame.ToString() ?? "";
             }
-            catch (Exception ex)
+            else if (tagType.Contains("FlacMetadata"))
             {
-                var log = new LogWriter($"Could not find TagLib 'cover/original' artist metadata for {this.ToString()}. \"{ex.Message}\"");
+                originalArtist = ((TagLib.Flac.Metadata)file.GetTag(TagLib.TagTypes.FlacMetadata)).Comment;
+            }
+            else if (tagType.Contains("Apple"))
+            {
+                originalArtist = ((TagLib.Mpeg4.AppleTag)file.GetTag(TagLib.TagTypes.Apple)).Comment;
+            }
+            else if (tagType.Contains("Ape"))
+            {
+                originalArtist = ((TagLib.Ape.Tag)file.GetTag(TagLib.TagTypes.Ape)).Comment;
+            }
+            else if (tagType.Contains("Xiph"))
+            {
+                originalArtist = ((TagLib.Ogg.XiphComment)file.GetTag(TagLib.TagTypes.Xiph)).Comment;
+            }
+            else
+            {
+                var log = new LogWriter($"Could not find TagLib 'cover/original' artist metadata for {this.Filepath}. " +
+                $" TagType: {file.TagTypes}.");
                 return isCover;
             }
+            if (TagLibProps.TryGetValue("Artist", out object value))
+            {
+                if (!String.IsNullOrEmpty(originalArtist) && originalArtist != value.ToString())
+                    isCover = true;
+            }
+            return isCover;
         }
 
         private bool IsLive(TagLib.File file)
@@ -147,13 +193,11 @@ namespace MusicMetadataOrganizer
             var isLive = false;
             try
             {
-                var comment = TagLibFile.Tag.Comment;
-                //var tag = TagLibFile.GetTag(TagLib.TagTypes.Id3v2);
-                //var frame = TagLib.Id3v2.CommentsFrame.GetPreferred((TagLib.Id3v2.Tag)tag, "COMM", "XXX");
-
+                var comment = TagLibFile.Tag.Comment ?? "";
+                if (String.IsNullOrEmpty(comment))
+                    return isLive;
                 Regex textWithLive = new Regex(@"\blive\b");
                 if (textWithLive.IsMatch(comment.ToLower()))
-                //if (textWithLive.IsMatch(frame.ToString().ToLower()))
                     isLive = true;
                 return isLive;
             }
@@ -172,7 +216,12 @@ namespace MusicMetadataOrganizer
             SysIOProps.Add("Extension", SysIOFile.Extension);
             SysIOProps.Add("CreationTime", Convert.ToDateTime(SysIOFile.CreationTime));
             SysIOProps.Add("LastAccessTime", Convert.ToDateTime(SysIOFile.LastAccessTime));
-            SysIOProps.Add("Length", SysIOFile.Length);
+            SysIOProps.Add("Size", SysIOFile.Length);
+        }
+
+        public bool Exists()
+        {
+            return File.Exists(this.Filepath);
         }
 
         public override bool Equals(object obj)
@@ -186,10 +235,10 @@ namespace MusicMetadataOrganizer
 
         public bool Equals(MasterFile obj)
         {
-            if (obj.TagLibProps["Artist"] != this.TagLibProps["Artist"] || obj.TagLibProps["Album"] != this.TagLibProps["Album"] 
-                || obj.TagLibProps["Length"] != this.TagLibProps["Length"] || obj.TagLibProps["Track"] != this.TagLibProps["Track"] 
+            if (obj.TagLibProps["Artist"] != this.TagLibProps["Artist"] || obj.TagLibProps["Album"] != this.TagLibProps["Album"]
+                || obj.TagLibProps["Size"] != this.TagLibProps["Size"] || obj.TagLibProps["Track"] != this.TagLibProps["Track"]
                 || obj.TagLibProps["BitRate"] != this.TagLibProps["BitRate"] || obj.TagLibProps["IsLive"] != this.TagLibProps["IsLive"]
-                || obj.TagLibProps["IsCover"] != this.TagLibProps["IsCover"])
+                || obj.TagLibProps["IsCover"] != this.TagLibProps["IsCover"] || obj.TagLibProps["Duration"] != this.TagLibProps["Duration"])
                 return false;
             else return true;
         }
@@ -204,6 +253,6 @@ namespace MusicMetadataOrganizer
             if (SysIOProps.TryGetValue("Name", out object name))
                 return name.ToString();
             else return "";
-        }                                                                                       
+        }
     }
 }

@@ -41,7 +41,7 @@ namespace MusicMetadataOrganizer
             foreach (var path in System.IO.Directory.GetFiles(directory))
             {
                 if (IsMediaFile(path.ToString()))
-                    files.Add(new MasterFile(path));
+                    files.Add(MasterFile.GetMasterFileFromFilepath(path));
             }
 
             foreach (var subdirectory in System.IO.Directory.EnumerateDirectories(directory))

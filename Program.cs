@@ -1,5 +1,4 @@
-﻿using CsvHelper;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -21,28 +20,20 @@ namespace MusicMetadataOrganizer
         [STAThread]
         static void Main(string[] args)
         {
-            MasterFile mf = new MasterFile(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
-            DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
-                                        "Initial Catalog=MusicMetadata;" +
-                                        "Integrated Security=True");
-            db.InsertSelectUpdateDeleteRecord(mf, StatementType.Delete);
-            //db.InsertSelectUpdateDeleteRecord(mf, "INSERT");
+            //MasterFile mf = new MasterFile(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
+            //DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
+            //                            "Initial Catalog=MusicMetadata;" +
+            //                            "Integrated Security=True");
+
+            //var masterFile = new MasterFile(db.QueryRecord(mf.Filepath));
+            //db.InsertSelectUpdateDeleteRecord(mf, StatementType.Insert);
 
 
             //var file1 = new MasterFile(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
             //var file2 = new MasterFile(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
 
-            //Console.WriteLine(file1.Equals(file2));
-             
-
-            //TagLib.CombinedTag tag = new CombinedTag(file1.TagLibFile.Tag);
-
+            
             /*
-            Type myType = file1.GetType();
-            IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
-
-            var test = file1.TagLibFile.Tag;
-
             string genre = "Hip-Hop, Rock"; 
             var matchingFiles = Directory.GetFiles
                 (@"Folder\SubFolder", "*.mp3", SearchOption.AllDirectories)
@@ -58,34 +49,39 @@ namespace MusicMetadataOrganizer
                 System.IO.File.Move(f, Path.Combine(@"D:\NewFolder", new FileInfo(f).Name));
             }
             */
-            //var spinner = new ConsoleSpinner();
 
-            //var searcher = new FileSearcher();
-            //searcher.SelectDirectory();
+          
+            var spinner = new ConsoleSpinner();
 
-            //spinner.Start();
-            //searcher.ExtractFiles(searcher.Directory);
-            //spinner.Stop();
+            var searcher = new FileSearcher();
+            searcher.SelectDirectory();
 
-            //DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
-            //                            "Initial Catalog=MusicMetadata;" +
-            //                            "Integrated Security=True");
+            spinner.Start();
+            searcher.ExtractFiles(searcher.Directory);
+            spinner.Stop();
 
-            
-            //db.DeleteAllRecords();
-            /*
-
+            DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
+                                        "Initial Catalog=MusicMetadata;" +
+                                        "Integrated Security=True");
+            db.DeleteAllRecords();
+            //var dbFiles = new List<MasterFile>();
             foreach (var file in searcher.files)
             {
-                if (db.Contains(file))
-                {
-                    Console.WriteLine(file.ToString() + " is already in the database.");
-                    break;
-                }
-                db.InsertData(file);
+                //var mf = FileWriter.GetMasterFile(db, file.Filepath);
+                //if (mf == null)
+                //{
+                //    db.InsertUpdateDeleteRecord(MasterFile.GetMasterFileFromFilepath(file.Filepath), StatementType.Insert);
+                //    var log = new LogWriter($"Could not create a MasterFile object for {file.Filepath}. " +
+                //        $"This file has been added to the database.");
+                //    continue;
+                //}
+                //FileWriter.UpdateFile(mf);
+
+                db.InsertUpdateDeleteRecord(file, StatementType.Insert);
+                //dbFiles.Add(FileWriter.GetMasterFile(db, file.Filepath));
+                //db.InsertUpdateDeleteRecord(file, StatementType.Update);
                 Console.WriteLine(file.ToString());
-            } 
-            */
+            }
         }
     }
 }

@@ -10,23 +10,25 @@ namespace MusicMetadataOrganizer
 {
     public class LogWriter
     {
-        private string m_exePath = string.Empty;
+        private string m_exePath = "";
         public LogWriter(string logMessage)
         {
             LogWrite(logMessage);
         }
+
         public void LogWrite(string logMessage)
         {
             m_exePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             try
             {
-                using (StreamWriter w = File.AppendText(m_exePath + "\\" + "log.txt"))
+                using (StreamWriter writer = File.AppendText(m_exePath + "\\" + "log.txt"))
                 {
-                    Log(logMessage, w);
+                    Log(logMessage, writer);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                throw new Exception($"Could not create an error log in {m_exePath}. \"{ex.Message}\"");
             }
         }
 
@@ -35,14 +37,14 @@ namespace MusicMetadataOrganizer
             try
             {
                 txtWriter.Write("\r\nLog Entry : ");
-                txtWriter.WriteLine("{0} {1}", DateTime.Now.ToLongTimeString(),
-                    DateTime.Now.ToLongDateString());
+                txtWriter.WriteLine($"{DateTime.Now.ToLongTimeString()} {DateTime.Now.ToLongDateString()}");
                 txtWriter.WriteLine("  :");
-                txtWriter.WriteLine("  :{0}", logMessage);
+                txtWriter.WriteLine($"  :{logMessage}");
                 txtWriter.WriteLine("-------------------------------");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                throw new Exception($"Could not write to error log in {m_exePath}. \"{ex.Message}\"");
             }
         }
     }
