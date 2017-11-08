@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -28,11 +29,9 @@ namespace MusicMetadataOrganizer
             //var masterFile = new MasterFile(db.QueryRecord(mf.Filepath));
             //db.InsertSelectUpdateDeleteRecord(mf, StatementType.Insert);
 
-
             //var file1 = new MasterFile(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
             //var file2 = new MasterFile(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
 
-            
             /*
             string genre = "Hip-Hop, Rock"; 
             var matchingFiles = Directory.GetFiles
@@ -49,13 +48,10 @@ namespace MusicMetadataOrganizer
                 System.IO.File.Move(f, Path.Combine(@"D:\NewFolder", new FileInfo(f).Name));
             }
             */
-
           
             var spinner = new ConsoleSpinner();
-
             var searcher = new FileSearcher();
             searcher.SelectDirectory();
-
             spinner.Start();
             searcher.ExtractFiles(searcher.Directory);
             spinner.Stop();
@@ -67,20 +63,20 @@ namespace MusicMetadataOrganizer
             //var dbFiles = new List<MasterFile>();
             foreach (var file in searcher.files)
             {
-                //var mf = FileWriter.GetMasterFile(db, file.Filepath);
-                //if (mf == null)
-                //{
-                //    db.InsertUpdateDeleteRecord(MasterFile.GetMasterFileFromFilepath(file.Filepath), StatementType.Insert);
-                //    var log = new LogWriter($"Could not create a MasterFile object for {file.Filepath}. " +
-                //        $"This file has been added to the database.");
-                //    continue;
-                //}
-                //FileWriter.UpdateFile(mf);
-
                 db.InsertUpdateDeleteRecord(file, StatementType.Insert);
+                var mf = db.GetMasterFile(db, file.Filepath);
+                if (mf == null)
+                {
+                    db.InsertUpdateDeleteRecord(MasterFile.GetMasterFileFromFilepath(file.Filepath), StatementType.Insert);
+                    var log = new LogWriter($"Could not create a MasterFile object for {file.Filepath}. " +
+                        $"This file has been added to the database.");
+                    continue;
+                }
+                FileWriter.UpdateFile(mf);
+
                 //dbFiles.Add(FileWriter.GetMasterFile(db, file.Filepath));
                 //db.InsertUpdateDeleteRecord(file, StatementType.Update);
-                Console.WriteLine(file.ToString());
+                Debug.WriteLine(file.ToString());
             }
         }
     }

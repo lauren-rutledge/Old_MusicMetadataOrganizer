@@ -17,6 +17,11 @@ namespace MusicMetadataOrganizer
             ConnectionString = connStr;
         }
 
+        public MasterFile GetMasterFile(DataBase db, string filepath)
+        {
+            return MasterFile.GetMasterFileFromDB(db.QueryRecord(filepath));
+        }
+
         private void ExecuteSqlCommands(SqlCommand[] sqlCommands)
         {
             using (var connection = new SqlConnection(ConnectionString))

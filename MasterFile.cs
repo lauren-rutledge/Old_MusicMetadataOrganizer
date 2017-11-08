@@ -40,7 +40,6 @@ namespace MusicMetadataOrganizer
             Filepath = TagLibProps["Filepath"].ToString();
         }
 
-        // Change this to check for null taglib file or sysio file objects, not null filepath
         public static MasterFile GetMasterFileFromFilepath(string filepath)
         {
             if (!String.IsNullOrEmpty(filepath))
