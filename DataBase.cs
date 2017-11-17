@@ -172,8 +172,10 @@ namespace MusicMetadataOrganizer
             if (statementType == StatementType.Insert && this.Contains(file))
                 return;
 
-            var sysIOcmd = new SqlCommand("dbo.usp_SysIO_InsertUpdateDelete");
-            sysIOcmd.CommandType = CommandType.StoredProcedure;
+            var sysIOcmd = new SqlCommand("dbo.usp_SysIO_InsertUpdateDelete")
+            {
+                CommandType = CommandType.StoredProcedure
+            };
             sysIOcmd.Parameters.Add("@Filepath", SqlDbType.NVarChar).Value = file.Filepath;
             sysIOcmd.Parameters.Add("@Name", SqlDbType.NVarChar).Value = file.SysIOProps["Name"].ToString();
             sysIOcmd.Parameters.Add("@Directory", SqlDbType.NVarChar).Value = file.SysIOProps["Directory"].ToString();
@@ -183,8 +185,10 @@ namespace MusicMetadataOrganizer
             sysIOcmd.Parameters.Add("@Size", SqlDbType.BigInt).Value = Convert.ToInt64(file.SysIOProps["Size"]);
             sysIOcmd.Parameters.Add("@StatementType", SqlDbType.NVarChar).Value = statementType.ToString();
 
-            var tagLibcmd = new SqlCommand("dbo.usp_TagLib_InsertUpdateDelete");
-            tagLibcmd.CommandType = CommandType.StoredProcedure;
+            var tagLibcmd = new SqlCommand("dbo.usp_TagLib_InsertUpdateDelete")
+            {
+                CommandType = CommandType.StoredProcedure
+            };
             tagLibcmd.Parameters.Add("@Filepath", SqlDbType.NVarChar).Value = file.Filepath;
             tagLibcmd.Parameters.Add("@BitRate", SqlDbType.Int).Value = Convert.ToInt32(file.TagLibProps["BitRate"]);
             tagLibcmd.Parameters.Add("@MediaType", SqlDbType.NVarChar).Value = file.TagLibProps["MediaType"].ToString();

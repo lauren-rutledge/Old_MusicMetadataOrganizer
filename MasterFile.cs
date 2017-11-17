@@ -218,6 +218,14 @@ namespace MusicMetadataOrganizer
             SysIOProps.Add("Size", SysIOFile.Length);
         }
 
+        public void Update(RESPONSE response)
+        {
+            this.TagLibProps["Artist"] = response.ALBUM.ARTIST;
+            this.TagLibProps["Album"] = response.ALBUM.TITLE;
+            this.TagLibProps["Title"] = response.ALBUM.TRACK.TITLE;
+            this.TagLibProps["Track"] = response.ALBUM.TRACK.TRACK_NUM;
+        }
+
         public bool Exists()
         {
             return File.Exists(this.Filepath);
