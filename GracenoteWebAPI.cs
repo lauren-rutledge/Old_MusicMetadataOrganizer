@@ -15,31 +15,11 @@ namespace MusicMetadataOrganizer
 {
     public static class GracenoteWebAPI
     {
-        static System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
-        public static string destinationUrl = "https://c834201935.web.cddbp.net/webapi/xml/1.0/";
+        private static System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
+        private const string destinationUrl = "https://c834201935.web.cddbp.net/webapi/xml/1.0/";
 
-        public static string PostXMLData(string destinationUrl, string requestXml)
+        public static string PostXmlData(string requestXml)
         {
-            /*
-            // Using Gracenote library (under construction)
-            string clientID = "834201935-7F828E5FFAED9EFA8048694BBCD7BD05";
-            string userID = "34438951537836737-80CC83E70D67748C63BF50EA6420C214";
-            Endpoint endpoint = new Endpoint(clientID);
-            ParkSquare.Gracenote.HttpClient client2 = new ParkSquare.Gracenote.HttpClient(endpoint);
-            Client dataTransferClient = new Client(clientID);
-            Query query = new Query(requestXml, dataTransferClient);
-            // Must include your Gracenote client ID string and User ID string in the AUTH block of each query.
-            Queries queries = new Queries()
-            {
-                Auth = new Auth(clientID, userID),
-                Lang = "eng",
-                Query = query
-            };
-            var result = client2.Post(queries);
-            return result.ToString();
-            */
-            
-            // Using standard code (works)
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(destinationUrl);
             byte[] bytes = Encoding.ASCII.GetBytes(requestXml);
             request.ContentType = "text/xml; encoding='utf-8'";
@@ -71,10 +51,8 @@ namespace MusicMetadataOrganizer
             var artist = file.TagLibProps["Artist"].ToString();
             var songTitle = file.TagLibProps["Title"].ToString();
             var album = file.TagLibProps["Album"].ToString();
-
-            // Do some null check for result variable
             var xml = XmlGenerator.CreateRequest(artist, songTitle, album);
-            var result = PostXMLData("https://c834201935.web.cddbp.net/webapi/xml/1.0/", xml);
+            var result = PostXmlData(xml);
             if (String.IsNullOrEmpty(result))
             {
                 var log = new LogWriter($"Received a null result from the PostXMLData() method. ArgumentNullException- Application terminated.");

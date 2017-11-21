@@ -10,12 +10,9 @@ namespace MusicMetadataOrganizer
 {
     public class DataBase
     {
-        string ConnectionString = "";
-
-        public DataBase(string connStr)
-        {
-            ConnectionString = connStr;
-        }
+        private const string ConnectionString = @"Data Source=Ashie-PC\SQLExpress;" +
+                                   "Initial Catalog=MusicMetadata;" +
+                                   "Integrated Security=True";
 
         public MasterFile GetMasterFile(DataBase db, string filepath)
         {

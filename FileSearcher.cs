@@ -8,11 +8,10 @@ using System.Windows.Forms;
 
 namespace MusicMetadataOrganizer
 {
-    // Maybe make static? 
-    public class FileSearcher
+    public static class FileSearcher
     {
-        private string _directory;
-        public string Directory
+        private static string _directory;
+        public static string Directory
         {
             get
             {
@@ -20,10 +19,10 @@ namespace MusicMetadataOrganizer
             }
         }
 
-        private List<MasterFile> files = new List<MasterFile>();
+        private static List<MasterFile> files = new List<MasterFile>();
 
         [STAThread]
-        public List<MasterFile> ExtractFiles()
+        public static List<MasterFile> ExtractFiles()
         {
             var spinner = new ConsoleSpinner();
             SelectDirectory();
@@ -33,7 +32,7 @@ namespace MusicMetadataOrganizer
             return files;
         }
 
-        private void SelectDirectory()
+        private static void SelectDirectory()
         {
             var folderBrowser = new FolderBrowserDialog
             {
@@ -46,7 +45,7 @@ namespace MusicMetadataOrganizer
                 Environment.Exit(1);
         }
 
-        private void ExtractFiles(string directory)
+        private static void ExtractFiles(string directory)
         {
             var filesInFolder = System.IO.Directory.GetFiles(directory, "", SearchOption.AllDirectories);
 
@@ -65,8 +64,8 @@ namespace MusicMetadataOrganizer
         private static string[] mediaExtensions = 
         {
             ".AAC", ".AIFF", ".APE", ".ASF", ".AA", ".AAX", ".FLAC", ".MKA", ".M4A", ".MP3",
-            ".MPC", ".OGG", ".RIFF", ".WV", ".MKV", ".MP4"
-            // Took out .MPG, .MPEG, & .AVI
+            ".MPC", ".OGG", ".RIFF", ".WV"
+            // Took out .MPG, .MPEG, .MKV, .MP4, & .AVI
         };
 
         private static bool IsMediaFile(string path)

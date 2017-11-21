@@ -146,16 +146,12 @@ namespace MusicMetadataOrganizer
             var isCover = false;
             var originalArtist = "";
             var tagType = file.TagTypes.ToString();
-            
+
             if (tagType.Contains("Id3v2"))
             {
-                if (file is TagLib.Matroska.File)
-                {
-                    return isCover;
-                }
-            var id3v2Tag = file.GetTag(TagLib.TagTypes.Id3v2);
-            var frame = TagLib.Id3v2.TextInformationFrame.Get((TagLib.Id3v2.Tag)id3v2Tag, "TOPE", true);
-            originalArtist = frame.ToString() ?? "";
+                var id3v2Tag = file.GetTag(TagLib.TagTypes.Id3v2);
+                var frame = TagLib.Id3v2.TextInformationFrame.Get((TagLib.Id3v2.Tag)id3v2Tag, "TOPE", true);
+                originalArtist = frame.ToString() ?? "";
             }
             else if (tagType.Contains("FlacMetadata"))
             {
@@ -220,10 +216,10 @@ namespace MusicMetadataOrganizer
 
         public void Update(RESPONSE response)
         {
-            this.TagLibProps["Artist"] = response.ALBUM.ARTIST;
-            this.TagLibProps["Album"] = response.ALBUM.TITLE;
-            this.TagLibProps["Title"] = response.ALBUM.TRACK.TITLE;
-            this.TagLibProps["Track"] = response.ALBUM.TRACK.TRACK_NUM;
+            TagLibProps["Artist"] = response.ALBUM.ARTIST;
+            TagLibProps["Album"] = response.ALBUM.TITLE;
+            TagLibProps["Title"] = response.ALBUM.TRACK.TITLE;
+            TagLibProps["Track"] = response.ALBUM.TRACK.TRACK_NUM;
         }
 
         public bool Exists()
@@ -242,10 +238,10 @@ namespace MusicMetadataOrganizer
 
         public bool Equals(MasterFile obj)
         {
-            if (obj.TagLibProps["Artist"] != this.TagLibProps["Artist"] || obj.TagLibProps["Album"] != this.TagLibProps["Album"]
-                || obj.TagLibProps["Size"] != this.TagLibProps["Size"] || obj.TagLibProps["Track"] != this.TagLibProps["Track"]
-                || obj.TagLibProps["BitRate"] != this.TagLibProps["BitRate"] || obj.TagLibProps["IsLive"] != this.TagLibProps["IsLive"]
-                || obj.TagLibProps["IsCover"] != this.TagLibProps["IsCover"] || obj.TagLibProps["Duration"] != this.TagLibProps["Duration"])
+            if (obj.TagLibProps["Artist"] != TagLibProps["Artist"] || obj.TagLibProps["Album"] != TagLibProps["Album"]
+                || obj.TagLibProps["Size"] != TagLibProps["Size"] || obj.TagLibProps["Track"] != TagLibProps["Track"]
+                || obj.TagLibProps["BitRate"] != TagLibProps["BitRate"] || obj.TagLibProps["IsLive"] != TagLibProps["IsLive"]
+                || obj.TagLibProps["IsCover"] != TagLibProps["IsCover"] || obj.TagLibProps["Duration"] != TagLibProps["Duration"])
                 return false;
             else return true;
         }

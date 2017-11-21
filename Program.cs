@@ -28,27 +28,12 @@ namespace MusicMetadataOrganizer
         static void Main(string[] args)
         {
             //var mf = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
-            //DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
-            //                            "Initial Catalog=MusicMetadata;" +
-            //                            "Integrated Security=True");
+            //var db = new DataBase();
 
             //var masterFile = MasterFile.GetMasterFileFromDB(db.QueryRecord(mf.Filepath));
             //db.InsertSelectUpdateDeleteRecord(mf, StatementType.Insert);
 
-            /*
-            // Testing equality and updating
-            var file1 = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
-
-            var xml = System.IO.File.ReadAllText
-                (@"D:\My Documents\Visual Studio 2017\Projects\MusicOrganizer\MusicMetadataOrganizer\MusicMetadataOrganizer\bin\Debug\xmlTest2.txt");
-            var result = XmlParser.XmlToObject(xml);
-            Console.WriteLine(result[0].ALBUM.TITLE);
-            if (!result[0].Equals(mf))
-            {
-                Console.WriteLine("Not equal");
-                mf.Update(result[0]);
-            }
-            */
+            //var file1 = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
 
             //Testing the Gracenote API and converting the xml to an object
             //var text = Xml.CreateRequest("flying lotus", "until the quiet comes", "all in");
@@ -56,17 +41,16 @@ namespace MusicMetadataOrganizer
             //if (response.Equals(mf))
             //    Console.WriteLine("Equal");
 
-            //var text = XmlGenerator.CreateRequest("Angels and Airwaves", "The Adventure", "We Don't Need to Whisper");
-            //var result1 = GracenoteWebAPI.PostXMLData("https://c834201935.web.cddbp.net/webapi/xml/1.0/", text);
-            //Console.WriteLine(result1);
-            //var gnFileList = XmlParser.XmlToObject(result1);
-            //Console.WriteLine(gnFileList[0].ALBUM.ARTIST);
+            var text = XmlGenerator.CreateRequest("Angels and Airwaves", "The Adventure");//, "We Don't Need to Whisper");
+            var result1 = GracenoteWebAPI.PostXmlData(text);
+            var gnFileList = XmlParser.XmlToObject(result1);
+            Console.WriteLine(gnFileList[0].ALBUM.ARTIST);
+
 
             //DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
             //                            "Initial Catalog=MusicMetadata;" +
             //                            "Integrated Security=True");
             //db.DeleteAllRecords();
-            ////var dbFiles = new List<MasterFile>();
             //foreach (var file in searcher.files)
             //{
             //    db.InsertUpdateDeleteRecord(file, StatementType.Insert);
