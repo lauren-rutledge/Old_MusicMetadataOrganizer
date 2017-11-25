@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace MusicMetadataOrganizer
 {
-    public class DataBase
+    public class Database
     {
         private const string ConnectionString = @"Data Source=Ashie-PC\SQLExpress;" +
                                    "Initial Catalog=MusicMetadata;" +
                                    "Integrated Security=True";
 
-        public MasterFile GetMasterFile(DataBase db, string filepath)
+        public MasterFile GetMasterFile(Database db, string filepath)
         {
             return MasterFile.GetMasterFileFromDB(db.QueryRecord(filepath));
         }

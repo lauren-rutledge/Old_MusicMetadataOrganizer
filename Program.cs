@@ -27,29 +27,35 @@ namespace MusicMetadataOrganizer
         [STAThread]
         static void Main(string[] args)
         {
-            //var mf = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
+            var files = FileSearcher.ExtractFiles();
+            foreach (var file in files)
+            {
+                var response = GracenoteWebAPI.Query(file);
+                var results = response.CheckEquality(file);
+                // Do this part in the mf.update method
+                var matches = results.Where(pair => pair.Value == false)
+                  .Select(pair => pair.Key);
+                if (matches.Count() > 0)
+                {
+                    Console.WriteLine(file + " has new or different data. Updating...");
+                    foreach (var match in matches)
+                    {
+                        file.Update(response, match);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine(file + " has no new or different data. Not updating.");
+                }
+            }
+            Console.WriteLine("Complete");
+
+            // Test MasterFiles
+            //var mfFromFP = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
+            //var mfFromFp2 = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
+            //var mfFromDB = MasterFile.GetMasterFileFromDB(db.QueryRecord(mf.Filepath));
+
             //var db = new DataBase();
-
-            //var masterFile = MasterFile.GetMasterFileFromDB(db.QueryRecord(mf.Filepath));
-            //db.InsertSelectUpdateDeleteRecord(mf, StatementType.Insert);
-
-            //var file1 = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
-
-            //Testing the Gracenote API and converting the xml to an object
-            //var text = Xml.CreateRequest("flying lotus", "until the quiet comes", "all in");
-            //var response = GracenoteWebAPI.Query(mf);
-            //if (response.Equals(mf))
-            //    Console.WriteLine("Equal");
-
-            var text = XmlGenerator.CreateRequest("Angels and Airwaves", "The Adventure");//, "We Don't Need to Whisper");
-            var result1 = GracenoteWebAPI.PostXmlData(text);
-            var gnFileList = XmlParser.XmlToObject(result1);
-            Console.WriteLine(gnFileList[0].ALBUM.ARTIST);
-
-
-            //DataBase db = new DataBase(@"Data Source=Ashie-PC\SQLExpress;" +
-            //                            "Initial Catalog=MusicMetadata;" +
-            //                            "Integrated Security=True");
             //db.DeleteAllRecords();
             //foreach (var file in searcher.files)
             //{
@@ -62,9 +68,6 @@ namespace MusicMetadataOrganizer
             //            $"This file has been added to the database.");
             //        continue;
             //    }
-            //    FileWriter.UpdateFile(mf);
-
-            //    //dbFiles.Add(FileWriter.GetMasterFile(db, file.Filepath));
             //    //db.InsertUpdateDeleteRecord(file, StatementType.Update);
             //    Debug.WriteLine(file.ToString());
             //}

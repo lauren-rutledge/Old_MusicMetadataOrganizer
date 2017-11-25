@@ -18,7 +18,7 @@ namespace MusicMetadataOrganizer
         private static System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
         private const string destinationUrl = "https://c834201935.web.cddbp.net/webapi/xml/1.0/";
 
-        public static string PostXmlData(string requestXml)
+        private static string PostXmlData(string requestXml)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(destinationUrl);
             byte[] bytes = Encoding.ASCII.GetBytes(requestXml);
@@ -46,7 +46,7 @@ namespace MusicMetadataOrganizer
             return null;
         }
 
-        public static RESPONSE Query (MasterFile file)
+        public static RESPONSE Query(MasterFile file)
         {
             var artist = file.TagLibProps["Artist"].ToString();
             var songTitle = file.TagLibProps["Title"].ToString();
@@ -66,14 +66,28 @@ namespace MusicMetadataOrganizer
     {
         public ALBUM ALBUM { get; set; }
 
+        [Obsolete("Potentially swapping to CheckEquality method only.")]
         public bool Equals(MasterFile file)
         {
-            if (file.TagLibProps["Artist"].ToString() == this.ALBUM.ARTIST &&
-                file.TagLibProps["Album"].ToString() == this.ALBUM.TITLE &&
-                file.TagLibProps["Title"].ToString() == this.ALBUM.TRACK.TITLE &&
-                Convert.ToInt32(file.TagLibProps["Track"]) == this.ALBUM.TRACK.TRACK_NUM)
-                return true;
-            return false;
+            bool isEqual = true;
+            foreach (var record in CheckEquality(file))
+            {
+                if (record.Value == false)
+                    isEqual = false;
+            }
+            return isEqual;
+        }
+
+        public Dictionary<string, bool> CheckEquality(MasterFile file)
+        {
+            return new Dictionary<string, bool>()
+            {
+                { "Artist", file.TagLibProps["Artist"].ToString() == StringCleaner.ToActualTitleCase(ALBUM.ARTIST) ? true : false },
+                { "Album",  file.TagLibProps["Album"].ToString() == StringCleaner.ToActualTitleCase(ALBUM.TITLE) ? true : false },
+                { "Title", file.TagLibProps["Title"].ToString() == StringCleaner.ToActualTitleCase(ALBUM.TRACK.TITLE) ? true : false },
+                { "Track",  Convert.ToInt32(file.TagLibProps["Track"]) == ALBUM.TRACK.TRACK_NUM ? true : false },
+                { "Year", file.TagLibProps["Year"].ToString() == ALBUM.DATE ? true : false }
+            };
         }
     }
 

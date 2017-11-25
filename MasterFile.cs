@@ -214,12 +214,81 @@ namespace MusicMetadataOrganizer
             SysIOProps.Add("Size", SysIOFile.Length);
         }
 
-        public void Update(RESPONSE response)
+        public void Update(RESPONSE response, string property)
         {
-            TagLibProps["Artist"] = response.ALBUM.ARTIST;
-            TagLibProps["Album"] = response.ALBUM.TITLE;
-            TagLibProps["Title"] = response.ALBUM.TRACK.TITLE;
-            TagLibProps["Track"] = response.ALBUM.TRACK.TRACK_NUM;
+            switch (property)
+            {
+                case "Artist":
+                    TagLibProps["Artist"] = StringCleaner.ToActualTitleCase(response.ALBUM.ARTIST);
+                    break;
+                case "Album":
+                    TagLibProps["Album"] = StringCleaner.ToActualTitleCase(response.ALBUM.TITLE);
+                    break;
+                case "Title":
+                    TagLibProps["Title"] = StringCleaner.ToActualTitleCase(response.ALBUM.TRACK.TITLE);
+                    break;
+                case "Track":
+                    TagLibProps["Track"] = response.ALBUM.TRACK.TRACK_NUM;
+                    break;
+                case "Year":
+                    TagLibProps["Year"] = response.ALBUM.DATE;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public void Save()
+        {
+            SaveToFile();
+            SaveToDatabase();
+        }
+
+        // Most of these aren't being updated. Either remove them or find a way to validate and update them
+        private void SaveToFile()
+        {
+            TagLibFile.Tag.Artists = new string[] { TagLibProps["Artist"].ToString() };
+            TagLibFile.Tag.AlbumArtists = new string[] { TagLibProps["Artist"].ToString() };
+            TagLibFile.Tag.Performers = new string[] { TagLibProps["Artist"].ToString() };
+            TagLibFile.Tag.Album = TagLibProps["Album"].ToString();
+            TagLibFile.Tag.Genres = new string[] { TagLibProps["Genres"].ToString() };
+            TagLibFile.Tag.Lyrics = TagLibProps["Lyrics"].ToString();
+            TagLibFile.Tag.Title = TagLibProps["Title"].ToString();
+            TagLibFile.Tag.Track = Convert.ToUInt32(TagLibProps["Track"]);
+            TagLibFile.Tag.Year = Convert.ToUInt32(TagLibProps["Year"]);
+            try
+            {
+                var tag = TagLibFile.GetTag(TagLib.TagTypes.Id3v2);
+                var frame = TagLib.Id3v2.PopularimeterFrame.Get((TagLib.Id3v2.Tag)tag, "WindowsUser", true);
+                frame.Rating = Convert.ToByte(TagLibProps["Rating"]);
+            }
+            catch (Exception)
+            {
+            }
+
+            TagLibFile.Tag.Comment = (bool)TagLibProps["IsLive"] ? "Live" : "";
+            try
+            {
+                TagLibFile.Save();
+            }
+            catch (IOException ex)
+            {
+                var log = new LogWriter($"Can not save database data to {Filepath}. \"{ex.Message}\"");
+            }
+            catch (Exception ex)
+            {
+                var log = new LogWriter($"Can not save database data to {Filepath}. \"{ex.Message}\"");
+            }
+
+            var nameInDB = SysIOProps["Name"].ToString();
+            if (SysIOFile.Name != nameInDB)
+                SysIOFile.MoveTo(Path.Combine(SysIOFile.Directory.FullName, nameInDB));
+        }
+
+        private void SaveToDatabase()
+        {
+            var db = new Database();
+            db.InsertUpdateDeleteRecord(this, StatementType.Update);
         }
 
         public bool Exists()
