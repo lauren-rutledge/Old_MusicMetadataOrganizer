@@ -8,8 +8,8 @@ namespace MusicMetadataOrganizer
 {
     public static class XmlGenerator
     {
-        private const string userId = "34438951537836737-80CC83E70D67748C63BF50EA6420C214";
         private const string clientId = "834201935-7F828E5FFAED9EFA8048694BBCD7BD05";
+        private const string userId = "34438951537836737-80CC83E70D67748C63BF50EA6420C214";
 
         public static string CreateRequest(string artist, string title, string album)
         {

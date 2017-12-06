@@ -30,7 +30,7 @@ namespace MusicMetadataOrganizer
             active = true;
             if (!thread.IsAlive)
             {
-                Console.Write("Working... ");
+                Console.WriteLine("Working... ");
                 thread.Start();
             }
         }

@@ -55,7 +55,8 @@ namespace MusicMetadataOrganizer
             var result = PostXmlData(xml);
             if (String.IsNullOrEmpty(result))
             {
-                var log = new LogWriter($"Received a null result from the PostXMLData() method. ArgumentNullException- Application terminated.");
+                var log = new LogWriter($"Received a null result from the PostXMLData() method. " +
+                    $"ArgumentNullException- Application terminated.");
                 throw new ArgumentNullException(nameof(result));
             }
             return XmlParser.XmlToObject(result)[0];
@@ -70,7 +71,7 @@ namespace MusicMetadataOrganizer
         public bool Equals(MasterFile file)
         {
             bool isEqual = true;
-            foreach (var record in CheckEquality(file))
+            foreach (var record in CheckMetadataEquality(file))
             {
                 if (record.Value == false)
                     isEqual = false;
@@ -78,7 +79,7 @@ namespace MusicMetadataOrganizer
             return isEqual;
         }
 
-        public Dictionary<string, bool> CheckEquality(MasterFile file)
+        public Dictionary<string, bool> CheckMetadataEquality(MasterFile file)
         {
             return new Dictionary<string, bool>()
             {

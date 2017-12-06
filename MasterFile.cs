@@ -141,6 +141,7 @@ namespace MusicMetadataOrganizer
             }
         }
 
+        // Messy - refactor
         private bool IsCover(TagLib.File file)
         {
             var isCover = false;
@@ -212,29 +213,35 @@ namespace MusicMetadataOrganizer
             SysIOProps.Add("CreationTime", Convert.ToDateTime(SysIOFile.CreationTime));
             SysIOProps.Add("LastAccessTime", Convert.ToDateTime(SysIOFile.LastAccessTime));
             SysIOProps.Add("Size", SysIOFile.Length);
+
+            //SysIOProps.Add("ArtistFolder", );
+            //SysIOProps.Add("AlbumFolder", new DirectoryInfo(Path.GetDirectoryName(Filepath)).Name);
         }
 
-        public void Update(RESPONSE response, string property)
+        public void Update(RESPONSE response, IEnumerable<string> properties)
         {
-            switch (property)
+            foreach (var property in properties)
             {
-                case "Artist":
-                    TagLibProps["Artist"] = StringCleaner.ToActualTitleCase(response.ALBUM.ARTIST);
-                    break;
-                case "Album":
-                    TagLibProps["Album"] = StringCleaner.ToActualTitleCase(response.ALBUM.TITLE);
-                    break;
-                case "Title":
-                    TagLibProps["Title"] = StringCleaner.ToActualTitleCase(response.ALBUM.TRACK.TITLE);
-                    break;
-                case "Track":
-                    TagLibProps["Track"] = response.ALBUM.TRACK.TRACK_NUM;
-                    break;
-                case "Year":
-                    TagLibProps["Year"] = response.ALBUM.DATE;
-                    break;
-                default:
-                    break;
+                switch (property)
+                {
+                    case "Artist":
+                        TagLibProps["Artist"] = StringCleaner.ToActualTitleCase(response.ALBUM.ARTIST);
+                        break;
+                    case "Album":
+                        TagLibProps["Album"] = StringCleaner.ToActualTitleCase(response.ALBUM.TITLE);
+                        break;
+                    case "Title":
+                        TagLibProps["Title"] = StringCleaner.ToActualTitleCase(response.ALBUM.TRACK.TITLE);
+                        break;
+                    case "Track":
+                        TagLibProps["Track"] = response.ALBUM.TRACK.TRACK_NUM;
+                        break;
+                    case "Year":
+                        TagLibProps["Year"] = response.ALBUM.DATE;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -244,51 +251,78 @@ namespace MusicMetadataOrganizer
             SaveToDatabase();
         }
 
-        // Most of these aren't being updated. Either remove them or find a way to validate and update them
         private void SaveToFile()
+        {
+            SaveMetadata();
+            SaveFileData();
+        }
+
+        // The commented out areas are functional, but are never actually updated/changed via api or
+        // other so they are currently pointless to update
+        private void SaveMetadata()
         {
             TagLibFile.Tag.Artists = new string[] { TagLibProps["Artist"].ToString() };
             TagLibFile.Tag.AlbumArtists = new string[] { TagLibProps["Artist"].ToString() };
             TagLibFile.Tag.Performers = new string[] { TagLibProps["Artist"].ToString() };
             TagLibFile.Tag.Album = TagLibProps["Album"].ToString();
-            TagLibFile.Tag.Genres = new string[] { TagLibProps["Genres"].ToString() };
-            TagLibFile.Tag.Lyrics = TagLibProps["Lyrics"].ToString();
+            //TagLibFile.Tag.Genres = new string[] { TagLibProps["Genres"].ToString() };
+            //TagLibFile.Tag.Lyrics = TagLibProps["Lyrics"].ToString();
             TagLibFile.Tag.Title = TagLibProps["Title"].ToString();
             TagLibFile.Tag.Track = Convert.ToUInt32(TagLibProps["Track"]);
             TagLibFile.Tag.Year = Convert.ToUInt32(TagLibProps["Year"]);
-            try
+            //try
+            //{
+            //    var tag = TagLibFile.GetTag(TagLib.TagTypes.Id3v2);
+            //    var frame = TagLib.Id3v2.PopularimeterFrame.Get((TagLib.Id3v2.Tag)tag, "WindowsUser", true);
+            //    frame.Rating = Convert.ToByte(TagLibProps["Rating"]);
+            //}
+            //catch (Exception ex)
+            //{
+            //    var log = new LogWriter($"Can not save rating metadata to {Filepath}. \"{ex.Message}\" Possibly invalid tag type (Not Id3v2/Windows)");
+            //}
+            //try
+            //{
+            //    TagLibFile.Tag.Comment = (bool)TagLibProps["IsLive"] ? "Live" : "";
+            //}
+            //catch (IOException ex)
+            //{
+            //    var log = new LogWriter($"Can not save database comment data to {Filepath}. IOException: \"{ex.Message}\"");
+            //}
+            //catch (Exception ex)
+            //{
+            //    var log = new LogWriter($"Can not save database comment data to {Filepath}. \"{ex.Message}\"");
+            //}
+            TagLibFile.Save();
+        }
+
+        private void SaveFileData()
+        {
+            var currentDirectory = SysIOProps["Directory"].ToString();
+            var directoryRegex = new Regex(@"([^\\]+)\\([^\\]+)$", RegexOptions.IgnoreCase);
+            var directoryMatch = directoryRegex.Match(Filepath).Groups[1];
+            var newDirectory = RegexExtensions.Replace(directoryMatch, currentDirectory, TagLibProps["Album"].ToString());
+            if (currentDirectory != newDirectory)
             {
-                var tag = TagLibFile.GetTag(TagLib.TagTypes.Id3v2);
-                var frame = TagLib.Id3v2.PopularimeterFrame.Get((TagLib.Id3v2.Tag)tag, "WindowsUser", true);
-                frame.Rating = Convert.ToByte(TagLibProps["Rating"]);
-            }
-            catch (Exception)
-            {
+                FileManipulator.RenameDirectory(this, currentDirectory, newDirectory);
+                SysIOProps["Directory"] = newDirectory;
             }
 
-            TagLibFile.Tag.Comment = (bool)TagLibProps["IsLive"] ? "Live" : "";
-            try
+            var currentFileName = SysIOProps["Name"].ToString();
+            var newFileName = TagLibProps["Title"].ToString() + SysIOProps["Extension"].ToString();
+            if (currentFileName != newFileName)
             {
-                TagLibFile.Save();
+                FileManipulator.RenameFile(this, currentFileName, newFileName);
+                SysIOProps["Name"] = newFileName;
             }
-            catch (IOException ex)
-            {
-                var log = new LogWriter($"Can not save database data to {Filepath}. \"{ex.Message}\"");
-            }
-            catch (Exception ex)
-            {
-                var log = new LogWriter($"Can not save database data to {Filepath}. \"{ex.Message}\"");
-            }
-
-            var nameInDB = SysIOProps["Name"].ToString();
-            if (SysIOFile.Name != nameInDB)
-                SysIOFile.MoveTo(Path.Combine(SysIOFile.Directory.FullName, nameInDB));
         }
 
         private void SaveToDatabase()
         {
             var db = new Database();
-            db.InsertUpdateDeleteRecord(this, StatementType.Update);
+            if (db.Contains(this))
+                db.InsertUpdateDeleteRecord(this, StatementType.Update);
+            else
+                db.InsertUpdateDeleteRecord(this, StatementType.Insert);
         }
 
         public bool Exists()
@@ -322,8 +356,8 @@ namespace MusicMetadataOrganizer
 
         public override string ToString()
         {
-            if (SysIOProps.TryGetValue("Name", out object name))
-                return name.ToString();
+            if (TagLibProps.TryGetValue("Title", out object title))
+                return title.ToString();
             else return "";
         }
     }

@@ -71,6 +71,7 @@
   <ItemGroup>
     <Compile Include="ConsoleSpinner.cs" />
     <Compile Include="Database.cs" />
+    <Compile Include="FileManipulator.cs" />
     <Compile Include="GracenoteWebAPI.cs" />
     <Compile Include="LogWriter.cs" />
     <Compile Include="MasterFile.cs" />
