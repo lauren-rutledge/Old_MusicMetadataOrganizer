@@ -27,13 +27,17 @@ namespace MusicMetadataOrganizer
         [STAThread]
         static void Main(string[] args)
         {
+            // Deletes all DB records and takes selected files, queries them against the API, updates any changes, 
+            // and saves the new data to the file and database
             /*
+            var db = new Database();
+            db.DeleteAllRecords();
+
             var files = FileSearcher.ExtractFiles();
             foreach (var file in files)
             {
-                //var db = new Database();
-                //db.InsertUpdateDeleteRecord(file, StatementType.Update);
-
+                if ((bool)file.TagLibProps["IsCover"])
+                    continue;
                 var response = GracenoteWebAPI.Query(file);
                 var results = response.CheckMetadataEquality(file);
                 // Do this part in the mf.update method
@@ -49,6 +53,7 @@ namespace MusicMetadataOrganizer
                 {
                     Console.WriteLine(file + " has no new or different data. Not updating.");
                 }
+                db.InsertUpdateDeleteRecord(file, StatementType.Insert);
             }
             Console.WriteLine("Complete");
             */
@@ -56,9 +61,15 @@ namespace MusicMetadataOrganizer
             // Test MasterFiles
             //var mfFromFP = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
             //var mfFromFp2 = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
-            //var mfFromDB = MasterFile.GetMasterFileFromDB(db.QueryRecord(mf.Filepath));
 
-            // Delete all files from Database and reinsert them
+            var mf = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
+            var db = new Database();
+            db.InsertUpdateDeleteRecord(mf, StatementType.Insert);
+            var dbQueryResult = db.QueryRecord(mf.Filepath);
+            var mfFromDB = MasterFile.GetMasterFileFromDB(dbQueryResult);
+
+            // Delete all files from Database and reinserts them
+            /*
             var db = new Database();
             db.DeleteAllRecords();
             foreach (var file in FileSearcher.ExtractFiles())
@@ -75,6 +86,7 @@ namespace MusicMetadataOrganizer
                 //db.InsertUpdateDeleteRecord(file, StatementType.Update);
                 Debug.WriteLine(file.ToString());
             }
+            */
         }
     }
 }

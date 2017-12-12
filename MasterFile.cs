@@ -42,17 +42,38 @@ namespace MusicMetadataOrganizer
 
         public static MasterFile GetMasterFileFromFilepath(string filepath)
         {
-            if (!String.IsNullOrEmpty(filepath))
-                return new MasterFile(filepath);
-            else return null;
+            if (String.IsNullOrEmpty(filepath))
+            {
+                var log = new LogWriter("Cannot create a MasterFile object from a null or empty filepath.");
+                throw new ArgumentNullException();
+            }
+            else if (!File.Exists(filepath))
+            {
+                var log = new LogWriter("Cannot create a MasterFile object from a filepath that does not exist. " +
+                    $"(MasterFile.GetMasterFileFromFilepath) Filepath argument - {filepath}.");
+                throw new ArgumentException();
+            }
+            return new MasterFile(filepath);
         }
 
         public static MasterFile GetMasterFileFromDB(Dictionary<string, object>[] properties)
         {
+            if (properties == null || properties.Length == 0)
+            {
+                var log = new LogWriter("Cannot create a MasterFile object from null or empty properties " +
+                        "(MasterFile.GetMasterFileFromDB).");
+                throw new ArgumentNullException();
+            }
+
             foreach (var collection in properties)
             {
-                if (collection == null || collection.Count == 0)
-                    return null;
+                if (collection == null || collection.Count() == 0)
+                {
+                    var log = new LogWriter("Cannot create a MasterFile object from a null or empty collection of properties " +
+                        "(MasterFile.GetMasterFileFromDB) -- One or more of the tables from the database returned no values. " +
+                        "Check to see if the file record exists in the database.");
+                    throw new ArgumentNullException();
+                }
             }
             return new MasterFile(properties);
         }
@@ -77,20 +98,7 @@ namespace MusicMetadataOrganizer
 
         private void CreateSysIOFile()
         {
-            try
-            {
-                SysIOFile = new FileInfo(Filepath);
-            }
-            catch (DirectoryNotFoundException ex)
-            {
-                var log = new LogWriter($"Could not create a TagLibFile object from {Filepath}. \"{ex.Message}\"");
-                throw new DirectoryNotFoundException("Invalid directory.");
-            }
-            catch (FileNotFoundException ex)
-            {
-                var log = new LogWriter($"Could not create a TagLibFile object from {Filepath}. \"{ex.Message}\"");
-                throw new FileNotFoundException("Could not locate " + Filepath + ".");
-            }
+            SysIOFile = new FileInfo(Filepath);
         }
 
         private void PopulateFields()
@@ -103,6 +111,7 @@ namespace MusicMetadataOrganizer
 
         private void PopulateTagLibFields()
         {
+            // Consider turning this into a loop
             TagLibProps.Add("Filepath", TagLibFile.Name);
             TagLibProps.Add("BitRate", TagLibFile.Properties.AudioBitrate);
             TagLibProps.Add("MediaType", TagLibFile.Properties.MediaTypes.ToString());
@@ -239,6 +248,9 @@ namespace MusicMetadataOrganizer
                     case "Year":
                         TagLibProps["Year"] = response.ALBUM.DATE;
                         break;
+                    case "Genres":
+                        TagLibProps["Genres"] = response.ALBUM.GENRE;
+                        break;
                     default:
                         break;
                 }
@@ -261,11 +273,13 @@ namespace MusicMetadataOrganizer
         // other so they are currently pointless to update
         private void SaveMetadata()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             TagLibFile.Tag.Artists = new string[] { TagLibProps["Artist"].ToString() };
+#pragma warning restore CS0618 // Type or member is obsolete
             TagLibFile.Tag.AlbumArtists = new string[] { TagLibProps["Artist"].ToString() };
             TagLibFile.Tag.Performers = new string[] { TagLibProps["Artist"].ToString() };
             TagLibFile.Tag.Album = TagLibProps["Album"].ToString();
-            //TagLibFile.Tag.Genres = new string[] { TagLibProps["Genres"].ToString() };
+            TagLibFile.Tag.Genres = new string[] { TagLibProps["Genres"].ToString() };
             //TagLibFile.Tag.Lyrics = TagLibProps["Lyrics"].ToString();
             TagLibFile.Tag.Title = TagLibProps["Title"].ToString();
             TagLibFile.Tag.Track = Convert.ToUInt32(TagLibProps["Track"]);
@@ -292,7 +306,18 @@ namespace MusicMetadataOrganizer
             //{
             //    var log = new LogWriter($"Can not save database comment data to {Filepath}. \"{ex.Message}\"");
             //}
-            TagLibFile.Save();
+            try
+            {
+                TagLibFile.Save();
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                var log = new LogWriter($"Can not save taglib data to {Filepath}. DirectoryNotFoundException: \"{ex.Message}\"");
+            }
+            catch (IOException ex)
+            {
+                var log = new LogWriter($"Can not save taglib data to {Filepath}. IOException: \"{ex.Message}\"");
+            }
         }
 
         private void SaveFileData()
@@ -303,7 +328,7 @@ namespace MusicMetadataOrganizer
             var newDirectory = RegexExtensions.Replace(directoryMatch, currentDirectory, TagLibProps["Album"].ToString());
             if (currentDirectory != newDirectory)
             {
-                FileManipulator.RenameDirectory(this, currentDirectory, newDirectory);
+                FileManipulator.RenameDirectory(currentDirectory, newDirectory);
                 SysIOProps["Directory"] = newDirectory;
             }
 
@@ -311,9 +336,10 @@ namespace MusicMetadataOrganizer
             var newFileName = TagLibProps["Title"].ToString() + SysIOProps["Extension"].ToString();
             if (currentFileName != newFileName)
             {
-                FileManipulator.RenameFile(this, currentFileName, newFileName);
+                FileManipulator.RenameFile(Filepath, newFileName);
                 SysIOProps["Name"] = newFileName;
             }
+            Filepath = Path.Combine(SysIOProps["Directory"].ToString(), SysIOProps["Name"].ToString());
         }
 
         private void SaveToDatabase()
@@ -332,19 +358,20 @@ namespace MusicMetadataOrganizer
 
         public override bool Equals(object obj)
         {
-            if (obj == null)
-                return false;
             if (obj.GetType() != this.GetType())
                 return false;
             return Equals((MasterFile)obj);
         }
 
-        public bool Equals(MasterFile obj)
+        private bool Equals(MasterFile mf)
         {
-            if (obj.TagLibProps["Artist"] != TagLibProps["Artist"] || obj.TagLibProps["Album"] != TagLibProps["Album"]
-                || obj.TagLibProps["Size"] != TagLibProps["Size"] || obj.TagLibProps["Track"] != TagLibProps["Track"]
-                || obj.TagLibProps["BitRate"] != TagLibProps["BitRate"] || obj.TagLibProps["IsLive"] != TagLibProps["IsLive"]
-                || obj.TagLibProps["IsCover"] != TagLibProps["IsCover"] || obj.TagLibProps["Duration"] != TagLibProps["Duration"])
+            if (mf.TagLibProps["Artist"].ToString() != TagLibProps["Artist"].ToString() ||
+                mf.TagLibProps["Album"].ToString() != TagLibProps["Album"].ToString() ||
+                Convert.ToUInt32(mf.TagLibProps["Track"]) != Convert.ToUInt32(TagLibProps["Track"]) ||
+                Convert.ToInt32(mf.TagLibProps["BitRate"]) != Convert.ToInt32(TagLibProps["BitRate"]) ||
+                mf.TagLibProps["IsLive"].ToString() != TagLibProps["IsLive"].ToString() ||
+                mf.TagLibProps["IsCover"].ToString() != TagLibProps["IsCover"].ToString() ||
+                (TimeSpan)mf.TagLibProps["Duration"] != (TimeSpan)TagLibProps["Duration"])
                 return false;
             else return true;
         }
@@ -356,9 +383,7 @@ namespace MusicMetadataOrganizer
 
         public override string ToString()
         {
-            if (TagLibProps.TryGetValue("Title", out object title))
-                return title.ToString();
-            else return "";
+            return $"{TagLibProps["Artist"].ToString()} - {TagLibProps["Title"].ToString()}";
         }
     }
 }

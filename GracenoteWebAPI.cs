@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
-using System.Threading.Tasks;
-using System.Web.Http;
-using ParkSquare.Gracenote;
-using ParkSquare.Gracenote.DataTransfer;
 
 namespace MusicMetadataOrganizer
 {
@@ -17,6 +10,22 @@ namespace MusicMetadataOrganizer
     {
         private static System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
         private const string destinationUrl = "https://c834201935.web.cddbp.net/webapi/xml/1.0/";
+
+        public static RESPONSE Query(MasterFile file)
+        {
+            var artist = file.TagLibProps["Artist"].ToString();
+            var songTitle = file.TagLibProps["Title"].ToString();
+            var album = file.TagLibProps["Album"].ToString();
+            var xml = XmlGenerator.CreateRequest(artist, songTitle, album);
+            var result = PostXmlData(xml);
+            if (String.IsNullOrEmpty(result))
+            {
+                var log = new LogWriter($"Received a null result from the PostXMLData() method. " +
+                    $"ArgumentNullException- Application terminated.");
+                throw new ArgumentNullException(nameof(result));
+            }
+            return XmlParser.XmlToObject(result)[0];
+        }
 
         private static string PostXmlData(string requestXml)
         {
@@ -45,22 +54,6 @@ namespace MusicMetadataOrganizer
             }
             return null;
         }
-
-        public static RESPONSE Query(MasterFile file)
-        {
-            var artist = file.TagLibProps["Artist"].ToString();
-            var songTitle = file.TagLibProps["Title"].ToString();
-            var album = file.TagLibProps["Album"].ToString();
-            var xml = XmlGenerator.CreateRequest(artist, songTitle, album);
-            var result = PostXmlData(xml);
-            if (String.IsNullOrEmpty(result))
-            {
-                var log = new LogWriter($"Received a null result from the PostXMLData() method. " +
-                    $"ArgumentNullException- Application terminated.");
-                throw new ArgumentNullException(nameof(result));
-            }
-            return XmlParser.XmlToObject(result)[0];
-        }
     }
 
     public class RESPONSE
@@ -81,13 +74,15 @@ namespace MusicMetadataOrganizer
 
         public Dictionary<string, bool> CheckMetadataEquality(MasterFile file)
         {
+            // Threw an unhandled NullReferenceException 
             return new Dictionary<string, bool>()
             {
                 { "Artist", file.TagLibProps["Artist"].ToString() == StringCleaner.ToActualTitleCase(ALBUM.ARTIST) ? true : false },
                 { "Album",  file.TagLibProps["Album"].ToString() == StringCleaner.ToActualTitleCase(ALBUM.TITLE) ? true : false },
                 { "Title", file.TagLibProps["Title"].ToString() == StringCleaner.ToActualTitleCase(ALBUM.TRACK.TITLE) ? true : false },
                 { "Track",  Convert.ToInt32(file.TagLibProps["Track"]) == ALBUM.TRACK.TRACK_NUM ? true : false },
-                { "Year", file.TagLibProps["Year"].ToString() == ALBUM.DATE ? true : false }
+                { "Year", file.TagLibProps["Year"].ToString() == ALBUM.DATE ? true : false },
+                { "Genres", file.TagLibProps["Genres"].ToString() == ALBUM.GENRE ? true : false }
             };
         }
     }

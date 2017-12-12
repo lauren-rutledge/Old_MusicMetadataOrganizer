@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace MusicMetadataOrganizer
 {
-    public static class RegexExtensions
+    internal static class RegexExtensions
     {
-        public static string ReplaceWithLower(this MatchCollection matches, string source)
+        internal static string ReplaceWithLower(this MatchCollection matches, string source)
         {
             foreach (var match in matches.Cast<Match>())
             {
@@ -18,17 +18,17 @@ namespace MusicMetadataOrganizer
             return source;
         }
 
-        public static string ReplaceWithLower(this Match match, string source)
+        internal static string ReplaceWithLower(this Match match, string source)
         {
             return source.Substring(0, match.Index) + match.Value.ToLower() + source.Substring(match.Index + match.Length);
         }
-        
-        public static string Replace(this Match match, string source, string replacement)
+
+        internal static string Replace(this Match match, string source, string replacement)
         {
             return source.Substring(0, match.Index) + replacement + source.Substring(match.Index + match.Length);
         }
 
-        public static string Replace(this Group match, string source, string replacement)
+        internal static string Replace(this Group match, string source, string replacement)
         {
             return source.Substring(0, match.Index) + replacement + source.Substring(match.Index + match.Length);
         }

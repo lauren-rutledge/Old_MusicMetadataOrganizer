@@ -14,35 +14,52 @@ namespace MusicMetadataOrganizer
                                    "Initial Catalog=MusicMetadata;" +
                                    "Integrated Security=True";
 
-        public MasterFile GetMasterFile(Database db, string filepath)
+        public MasterFile GetMasterFile(string filepath)
         {
-            return MasterFile.GetMasterFileFromDB(db.QueryRecord(filepath));
+            return MasterFile.GetMasterFileFromDB(QueryRecord(filepath));
         }
 
         private void ExecuteSqlCommands(SqlCommand[] sqlCommands)
         {
-            using (var connection = new SqlConnection(ConnectionString))
+            try
             {
-                connection.Open();
-                var transaction = connection.BeginTransaction();
-                try
+                using (var connection = new SqlConnection(ConnectionString))
                 {
-                    foreach (var cmd in sqlCommands)
+                    connection.Open();
+                    var transaction = connection.BeginTransaction();
+                    try
                     {
-                        using (cmd)
+                        foreach (var cmd in sqlCommands)
                         {
-                            cmd.Connection = connection;
-                            cmd.Transaction = transaction;
-                            cmd.ExecuteNonQuery();
+                            using (cmd)
+                            {
+                                cmd.Connection = connection;
+                                cmd.Transaction = transaction;
+                                cmd.ExecuteNonQuery();
+                            }
                         }
+                        transaction.Commit();
                     }
-                    transaction.Commit();
+                    catch (SqlException ex)
+                    {
+                        transaction.Rollback();
+                        var log = new LogWriter($"Could not execute SQL command. SqlException: \"{ex.Message}\"");
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        var log = new LogWriter($"Could not execute SQL command. \"{ex.Message}\"");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-                    var log = new LogWriter($"Could not execute SQL command. \"{ex.Message}\"");
-                }
+            }
+            catch (SqlException ex)
+            {
+                var log = new LogWriter($"Could not connect to the database. SqlException: \"{ex.Message}\". " +
+                    $"Try restarting the \"SQL Server (SQLEXPRESS)\" Windows Service.");
+            }
+            catch (Exception ex)
+            {
+                var log = new LogWriter($"Could not connect to the database. \"{ex.Message}\"");
             }
         }
 
@@ -101,7 +118,7 @@ namespace MusicMetadataOrganizer
             }
         }
 
-        internal Dictionary<string, object>[] QueryRecord(string filepath)
+        public Dictionary<string, object>[] QueryRecord(string filepath)
         {
             var tagLibProperties = QueryTagLibRecords(filepath);
             var sysIOProperties = QuerySysIORecords(filepath);
@@ -141,6 +158,10 @@ namespace MusicMetadataOrganizer
                         }
                     }
                 }
+                catch (SqlException ex)
+                {
+                    var log = new LogWriter($"Could not query TagLib records from database. SqlException: \"{ex.Message}\"");
+                }
                 catch (Exception ex)
                 {
                     var log = new LogWriter($"Could not query TagLib records from database. \"{ex.Message}\"");
@@ -175,6 +196,10 @@ namespace MusicMetadataOrganizer
                         }
                     }
                 }
+                catch (SqlException ex)
+                {
+                    var log = new LogWriter($"Could not query System.IO records from database. SqlException: \"{ex.Message}\"");
+                }
                 catch (Exception ex)
                 {
                     var log = new LogWriter($"Could not query System.IO records from database. \"{ex.Message}\"");
@@ -187,7 +212,7 @@ namespace MusicMetadataOrganizer
         {
             if (statementType == StatementType.Insert && this.Contains(file))
                 return;
-            if (statementType == StatementType.Update && !this.Contains(file))
+            else if (statementType == StatementType.Update && !this.Contains(file))
                 statementType = StatementType.Insert;
 
             var sysIOcmd = new SqlCommand("dbo.usp_SysIO_InsertUpdateDelete")
@@ -223,7 +248,6 @@ namespace MusicMetadataOrganizer
             tagLibcmd.Parameters.Add("@Duration", SqlDbType.BigInt).Value = ((TimeSpan)file.TagLibProps["Duration"]).Ticks;
             tagLibcmd.Parameters.Add("@StatementType", SqlDbType.NVarChar).Value = statementType.ToString();
 
-            //Have to delete data in SysIO table first because of primary/ foreign key relationship to TagLib table
             if (statementType == StatementType.Delete)
             {
                 sysIOcmd.CommandType = CommandType.StoredProcedure;

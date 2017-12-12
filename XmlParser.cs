@@ -8,10 +8,10 @@ using System.Xml.Serialization;
 
 namespace MusicMetadataOrganizer
 {
-    public static class XmlParser
+    internal static class XmlParser
     {
         // Try to change this to not return a list, but just an object
-        public static List<RESPONSE> XmlToObject(string xml)
+        internal static List<RESPONSE> XmlToObject(string xml)
         {
             var serializer = new XmlSerializer(typeof(List<RESPONSE>), new XmlRootAttribute("RESPONSES"));
             using (var stringReader = new StringReader(xml))

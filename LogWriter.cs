@@ -8,20 +8,20 @@ using System.Threading.Tasks;
 
 namespace MusicMetadataOrganizer
 {
-    public class LogWriter
+    internal class LogWriter
     {
         private string m_exePath = "";
-        public LogWriter(string logMessage)
+        internal LogWriter(string logMessage)
         {
             LogWrite(logMessage);
         }
 
-        public void LogWrite(string logMessage)
+        internal void LogWrite(string logMessage)
         {
             m_exePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             try
             {
-                using (StreamWriter writer = File.AppendText(m_exePath + "\\" + "log.txt"))
+                using (StreamWriter writer = File.AppendText(Path.Combine(m_exePath, "log.txt")))
                 {
                     Log(logMessage, writer);
                 }
@@ -32,7 +32,7 @@ namespace MusicMetadataOrganizer
             }
         }
 
-        public void Log(string logMessage, TextWriter txtWriter)
+        internal void Log(string logMessage, TextWriter txtWriter)
         {
             try
             {
