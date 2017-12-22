@@ -28,7 +28,7 @@ namespace MusicMetadataOrganizer
             }
             catch (Exception ex)
             {
-                throw new Exception($"Could not create an error log in {m_exePath}. \"{ex.Message}\"");
+                throw new Exception($"Could not create an error log in {m_exePath}. {ex.GetType()}: \"{ex.Message}\"");
             }
         }
 
@@ -44,7 +44,7 @@ namespace MusicMetadataOrganizer
             }
             catch (Exception ex)
             {
-                throw new Exception($"Could not write to error log in {m_exePath}. \"{ex.Message}\"");
+                throw new Exception($"Could not write to error log in {m_exePath}. {ex.GetType()}: \"{ex.Message}\"");
             }
         }
     }

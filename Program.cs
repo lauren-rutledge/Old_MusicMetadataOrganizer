@@ -2,23 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OleDb;
-using System.Data.SqlClient;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
-using System.Xml.Serialization;
-using TagLib;
-using TagLib.Id3v2;
 
 namespace MusicMetadataOrganizer
 {
@@ -29,7 +14,6 @@ namespace MusicMetadataOrganizer
         {
             // Deletes all DB records and takes selected files, queries them against the API, updates any changes, 
             // and saves the new data to the file and database
-            /*
             var db = new Database();
             db.DeleteAllRecords();
 
@@ -38,6 +22,8 @@ namespace MusicMetadataOrganizer
             {
                 if ((bool)file.TagLibProps["IsCover"])
                     continue;
+                // if (file.CheckForUpdates == false)
+                //    continue;
                 var response = GracenoteWebAPI.Query(file);
                 var results = response.CheckMetadataEquality(file);
                 // Do this part in the mf.update method
@@ -53,20 +39,12 @@ namespace MusicMetadataOrganizer
                 {
                     Console.WriteLine(file + " has no new or different data. Not updating.");
                 }
-                db.InsertUpdateDeleteRecord(file, StatementType.Insert);
             }
             Console.WriteLine("Complete");
-            */
 
             // Test MasterFiles
             //var mfFromFP = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\The Adventure.mp3");
             //var mfFromFp2 = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
-
-            var mf = MasterFile.GetMasterFileFromFilepath(@"C:\Users\Ashie\Desktop\Going Away to College.mp3");
-            var db = new Database();
-            db.InsertUpdateDeleteRecord(mf, StatementType.Insert);
-            var dbQueryResult = db.QueryRecord(mf.Filepath);
-            var mfFromDB = MasterFile.GetMasterFileFromDB(dbQueryResult);
 
             // Delete all files from Database and reinserts them
             /*

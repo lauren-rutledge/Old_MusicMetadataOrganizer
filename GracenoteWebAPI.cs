@@ -11,7 +11,7 @@ namespace MusicMetadataOrganizer
         private static System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
         private const string destinationUrl = "https://c834201935.web.cddbp.net/webapi/xml/1.0/";
 
-        public static RESPONSE Query(MasterFile file)
+        public static GracenoteSong Query(MasterFile file)
         {
             var artist = file.TagLibProps["Artist"].ToString();
             var songTitle = file.TagLibProps["Title"].ToString();
@@ -20,11 +20,11 @@ namespace MusicMetadataOrganizer
             var result = PostXmlData(xml);
             if (String.IsNullOrEmpty(result))
             {
-                var log = new LogWriter($"Received a null result from the PostXMLData() method. " +
-                    $"ArgumentNullException- Application terminated.");
+                var log = new LogWriter($"GracenoteWebAPI.Query() - Received a null result from the PostXMLData() method. " +
+                    $"ArgumentNullException: Application terminated.");
                 throw new ArgumentNullException(nameof(result));
             }
-            return XmlParser.XmlToObject(result)[0];
+            return new GracenoteSong(XmlParser.XmlToObject(result)[0]);
         }
 
         private static string PostXmlData(string requestXml)
@@ -50,7 +50,8 @@ namespace MusicMetadataOrganizer
             }
             catch (Exception ex)
             {
-                var log = new LogWriter($"Could not connect to the Gracenote web API. " + ex.Message);
+                var log = new LogWriter($"GracenoteWebAPI.PostXMLData() - Could not connect to the Gracenote web API. " +
+                    $"{ex.GetType()}: \"{ex.Message}\"");
             }
             return null;
         }

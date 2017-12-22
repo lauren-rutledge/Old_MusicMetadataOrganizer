@@ -72,10 +72,12 @@
     <Compile Include="ConsoleSpinner.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="FileManipulator.cs" />
+    <Compile Include="FileSearcher.cs" />
+    <Compile Include="GracenoteSong.cs" />
     <Compile Include="GracenoteWebAPI.cs" />
     <Compile Include="LogWriter.cs" />
     <Compile Include="MasterFile.cs" />
-    <Compile Include="FileSearcher.cs" />
+    <Compile Include="OperationResult.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegexExtensions.cs" />
@@ -87,9 +89,6 @@
     <None Include="App.config" />
     <None Include="UML.cd" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Readme.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

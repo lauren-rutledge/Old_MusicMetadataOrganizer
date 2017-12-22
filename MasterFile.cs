@@ -1,21 +1,17 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.Linq.Mapping;
 using System.Text.RegularExpressions;
 
 namespace MusicMetadataOrganizer
 {
     public class MasterFile
     {
-        public string Filepath { get; private set; }
+        public string Filepath { get; internal set; }
         public Dictionary<string, object> TagLibProps;
         public Dictionary<string, object> SysIOProps;
+        public bool CheckForUpdates;
 
         private TagLib.File TagLibFile { get; set; }
         private FileInfo SysIOFile { get; set; }
@@ -44,14 +40,16 @@ namespace MusicMetadataOrganizer
         {
             if (String.IsNullOrEmpty(filepath))
             {
-                var log = new LogWriter("Cannot create a MasterFile object from a null or empty filepath.");
-                throw new ArgumentNullException();
+                var message = "MasterFile.GetMasterFileFromFilepath() - Cannot create a MasterFile object from a null or empty filepath.";
+                var log = new LogWriter(message);
+                throw new ArgumentNullException(message);
             }
             else if (!File.Exists(filepath))
             {
-                var log = new LogWriter("Cannot create a MasterFile object from a filepath that does not exist. " +
-                    $"(MasterFile.GetMasterFileFromFilepath) Filepath argument - {filepath}.");
-                throw new ArgumentException();
+                var message = $"MasterFile.GetMasterFileFromFilepath() - Cannot create a MasterFile object from a filepath " +
+                    $"that does not exist. Filepath given - {filepath}.";
+                var log = new LogWriter(message);
+                throw new ArgumentException(message);
             }
             return new MasterFile(filepath);
         }
@@ -60,8 +58,7 @@ namespace MusicMetadataOrganizer
         {
             if (properties == null || properties.Length == 0)
             {
-                var log = new LogWriter("Cannot create a MasterFile object from null or empty properties " +
-                        "(MasterFile.GetMasterFileFromDB).");
+                var log = new LogWriter("MasterFile.GetMasterFileFromDB() - Cannot create a MasterFile object from null or empty properties.");
                 throw new ArgumentNullException();
             }
 
@@ -69,10 +66,11 @@ namespace MusicMetadataOrganizer
             {
                 if (collection == null || collection.Count() == 0)
                 {
-                    var log = new LogWriter("Cannot create a MasterFile object from a null or empty collection of properties " +
-                        "(MasterFile.GetMasterFileFromDB) -- One or more of the tables from the database returned no values. " +
-                        "Check to see if the file record exists in the database.");
-                    throw new ArgumentNullException();
+                    var message = "MasterFile.GetMasterFileFromDB() - Cannot create a MasterFile object from a null or empty collection " +
+                        "of properties -- One or more of the tables from the database returned no values. Check to see if the file record " +
+                        "exists in the database.";
+                    var log = new LogWriter(message);
+                    throw new ArgumentNullException(message);
                 }
             }
             return new MasterFile(properties);
@@ -84,13 +82,10 @@ namespace MusicMetadataOrganizer
             {
                 TagLibFile = TagLib.File.Create(Filepath);
             }
-            catch (IOException ex)
-            {
-                var log = new LogWriter($"Could not create a TagLibFile object from {Filepath}. \"{ex.Message}\"");
-            }
             catch (Exception ex)
             {
-                var log = new LogWriter($"Could not create a TagLibFile object from {Filepath}. \"{ex.Message}\"");
+                var log = new LogWriter($"MasterFile.CreateTagLibFile() - Could not create a TagLibFile object from '{Filepath}'. " +
+                    $"{ex.GetType()}: \"{ex.Message}\"");
                 return;
                 // Maybe should move the file into an 'error folder' 
             }
@@ -181,8 +176,8 @@ namespace MusicMetadataOrganizer
             }
             else
             {
-                var log = new LogWriter($"Could not find TagLib 'cover/original' artist metadata for {this.Filepath}. " +
-                $" TagType: {file.TagTypes}.");
+                var log = new LogWriter($"MasterFile.IsCover() - Could not find TagLib 'cover/original' artist metadata for " +
+                    $"'{this.Filepath}'. TagType: {file.TagTypes}.");
                 return isCover;
             }
             if (TagLibProps.TryGetValue("Artist", out object value))
@@ -208,7 +203,8 @@ namespace MusicMetadataOrganizer
             }
             catch (Exception ex)
             {
-                var log = new LogWriter($"Could not find TagLib 'Comment' metadata for {this.ToString()}. \"{ex.Message}\"");
+                var log = new LogWriter($"MasterFile.IsLive() - Could not find TagLib 'Comment' metadata for '{this.ToString()}'. " +
+                    $"{ex.GetType()}: \"{ex.Message}\"");
                 return isLive;
             }
         }
@@ -227,29 +223,29 @@ namespace MusicMetadataOrganizer
             //SysIOProps.Add("AlbumFolder", new DirectoryInfo(Path.GetDirectoryName(Filepath)).Name);
         }
 
-        public void Update(RESPONSE response, IEnumerable<string> properties)
+        public void Update(GracenoteSong songFromAPI, IEnumerable<string> properties)
         {
             foreach (var property in properties)
             {
                 switch (property)
                 {
                     case "Artist":
-                        TagLibProps["Artist"] = StringCleaner.ToActualTitleCase(response.ALBUM.ARTIST);
+                        TagLibProps["Artist"] = songFromAPI.Artist;
                         break;
                     case "Album":
-                        TagLibProps["Album"] = StringCleaner.ToActualTitleCase(response.ALBUM.TITLE);
+                        TagLibProps["Album"] = songFromAPI.Album;
                         break;
                     case "Title":
-                        TagLibProps["Title"] = StringCleaner.ToActualTitleCase(response.ALBUM.TRACK.TITLE);
+                        TagLibProps["Title"] = songFromAPI.Title;
                         break;
                     case "Track":
-                        TagLibProps["Track"] = response.ALBUM.TRACK.TRACK_NUM;
+                        TagLibProps["Track"] = songFromAPI.Track;
                         break;
                     case "Year":
-                        TagLibProps["Year"] = response.ALBUM.DATE;
+                        TagLibProps["Year"] = songFromAPI.Year;
                         break;
                     case "Genres":
-                        TagLibProps["Genres"] = response.ALBUM.GENRE;
+                        TagLibProps["Genres"] = songFromAPI.Genres;
                         break;
                     default:
                         break;
@@ -292,48 +288,48 @@ namespace MusicMetadataOrganizer
             //}
             //catch (Exception ex)
             //{
-            //    var log = new LogWriter($"Can not save rating metadata to {Filepath}. \"{ex.Message}\" Possibly invalid tag type (Not Id3v2/Windows)");
+            //    var log = new LogWriter($"Can not save rating metadata to {Filepath}. {ex.GetType()}: \"{ex.Message}\" " + 
+            //      "Possibly invalid tag type (Not Id3v2/Windows)");
             //}
             //try
             //{
             //    TagLibFile.Tag.Comment = (bool)TagLibProps["IsLive"] ? "Live" : "";
             //}
-            //catch (IOException ex)
-            //{
-            //    var log = new LogWriter($"Can not save database comment data to {Filepath}. IOException: \"{ex.Message}\"");
-            //}
             //catch (Exception ex)
             //{
-            //    var log = new LogWriter($"Can not save database comment data to {Filepath}. \"{ex.Message}\"");
+            //    var log = new LogWriter($"Can not save database comment data to {Filepath}. {ex.GetType()}: \"{ex.Message}\"");
             //}
             try
             {
                 TagLibFile.Save();
             }
-            catch (DirectoryNotFoundException ex)
-            {
-                var log = new LogWriter($"Can not save taglib data to {Filepath}. DirectoryNotFoundException: \"{ex.Message}\"");
-            }
             catch (IOException ex)
             {
-                var log = new LogWriter($"Can not save taglib data to {Filepath}. IOException: \"{ex.Message}\"");
+                var log = new LogWriter($"MasterFile.SaveMetadata() - Can not save taglib data to '{Filepath}'. {ex.GetType()}: \"{ex.Message}\"");
             }
         }
 
         private void SaveFileData()
         {
-            var currentDirectory = SysIOProps["Directory"].ToString();
+            // DIRECTORY NAME
             var directoryRegex = new Regex(@"([^\\]+)\\([^\\]+)$", RegexOptions.IgnoreCase);
-            var directoryMatch = directoryRegex.Match(Filepath).Groups[1];
-            var newDirectory = RegexExtensions.Replace(directoryMatch, currentDirectory, TagLibProps["Album"].ToString());
-            if (currentDirectory != newDirectory)
+            var currentFolderName = directoryRegex.Match(Filepath).Groups[1].ToString();
+            // Might not need this cleaning validation since it already happens in the GracenoteSong shit
+            var validAlbumFolderName = StringCleaner.RemoveInvalidDirectoryChars(TagLibProps["Album"].ToString());
+            if (currentFolderName != validAlbumFolderName)
             {
-                FileManipulator.RenameDirectory(currentDirectory, newDirectory);
+                var currentDirectory = SysIOProps["Directory"].ToString();
+                var newDirectory = currentDirectory.Replace(currentFolderName, validAlbumFolderName);
+                FileManipulator.RenameDirectory(this, currentDirectory, newDirectory);
+                Filepath = Filepath.Replace(currentFolderName, validAlbumFolderName);
                 SysIOProps["Directory"] = newDirectory;
             }
 
+            // FILE NAME
             var currentFileName = SysIOProps["Name"].ToString();
             var newFileName = TagLibProps["Title"].ToString() + SysIOProps["Extension"].ToString();
+            // Might not need this cleaning validation since it already happens in the GracenoteSong shit
+            newFileName = StringCleaner.RemoveInvalidFileNameCharacters(newFileName);
             if (currentFileName != newFileName)
             {
                 FileManipulator.RenameFile(Filepath, newFileName);

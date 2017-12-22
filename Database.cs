@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MusicMetadataOrganizer
 {
@@ -40,26 +37,24 @@ namespace MusicMetadataOrganizer
                         }
                         transaction.Commit();
                     }
-                    catch (SqlException ex)
-                    {
-                        transaction.Rollback();
-                        var log = new LogWriter($"Could not execute SQL command. SqlException: \"{ex.Message}\"");
-                    }
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        var log = new LogWriter($"Could not execute SQL command. \"{ex.Message}\"");
+                        var log = new LogWriter($"Database.ExecuteSqlCommands() - Could not execute SQL command. {ex.GetType()}: \"{ex.Message}\"");
                     }
                 }
             }
-            catch (SqlException ex)
-            {
-                var log = new LogWriter($"Could not connect to the database. SqlException: \"{ex.Message}\". " +
-                    $"Try restarting the \"SQL Server (SQLEXPRESS)\" Windows Service.");
-            }
             catch (Exception ex)
             {
-                var log = new LogWriter($"Could not connect to the database. \"{ex.Message}\"");
+                string errorMessage = $"Database.ExecuteSqlCommands() - Could not connect to the database. {ex.GetType()}: \"{ex.Message}\"";
+                if (ex is SqlException)
+                {
+                    var log = new LogWriter(errorMessage + "Try restarting the \"SQL Server (SQLEXPRESS)\" Windows Service.");
+                }
+                else
+                {
+                    var log = new LogWriter(errorMessage);
+                }
             }
         }
 
@@ -158,13 +153,10 @@ namespace MusicMetadataOrganizer
                         }
                     }
                 }
-                catch (SqlException ex)
-                {
-                    var log = new LogWriter($"Could not query TagLib records from database. SqlException: \"{ex.Message}\"");
-                }
                 catch (Exception ex)
                 {
-                    var log = new LogWriter($"Could not query TagLib records from database. \"{ex.Message}\"");
+                    var log = new LogWriter($"Database.QueryTagLibRecords() - Could not query TagLib records from database. " +
+                        $"{ex.GetType()}: \"{ex.Message}\"");
                 }
             }
             return properties;
@@ -196,13 +188,10 @@ namespace MusicMetadataOrganizer
                         }
                     }
                 }
-                catch (SqlException ex)
-                {
-                    var log = new LogWriter($"Could not query System.IO records from database. SqlException: \"{ex.Message}\"");
-                }
                 catch (Exception ex)
                 {
-                    var log = new LogWriter($"Could not query System.IO records from database. \"{ex.Message}\"");
+                    var log = new LogWriter($"Database.QuerySysIORecords() - Could not query System.IO records from database. " +
+                        $"{ex.GetType()}: \"{ex.Message}\"");
                 }
             }
             return properties;

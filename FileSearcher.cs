@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace MusicMetadataOrganizer
@@ -11,57 +9,60 @@ namespace MusicMetadataOrganizer
     public static class FileSearcher
     {
         private static string _directory;
-        public static string Directory
-        {
-            get
-            {
-                return _directory;
-            }
-        }
-
         private static List<MasterFile> files = new List<MasterFile>();
 
         [STAThread]
         public static List<MasterFile> ExtractFiles()
         {
-            var spinner = new ConsoleSpinner();
+            //var spinner = new ConsoleSpinner();
             SelectDirectory();
-            spinner.Start();
-            ExtractFiles(Directory);
-            spinner.Stop();
+            //spinner.Start();
+            ExtractFiles(_directory);
+            //spinner.Stop();
             return files;
+        }
+
+        internal static IEnumerable<MasterFile> ExtractFilesFromFolder(string directory)
+        {
+            foreach (var path in Directory.GetFiles(directory))
+            {
+                if (IsMediaFile(path))
+                    yield return MasterFile.GetMasterFileFromFilepath(path);
+            }
         }
 
         private static void SelectDirectory()
         {
             var folderBrowser = new FolderBrowserDialog
             {
-                RootFolder = Environment.SpecialFolder.MyComputer
+                SelectedPath = @"Z:\Music"
             };
-            folderBrowser.SelectedPath = @"Z:\Music";
             if (folderBrowser.ShowDialog() == DialogResult.OK)
                 _directory = folderBrowser.SelectedPath;
             else
+            {
                 Environment.Exit(1);
+                Application.Exit();
+            }
         }
 
         private static void ExtractFiles(string directory)
         {
-            var filesInFolder = System.IO.Directory.GetFiles(directory, "", SearchOption.AllDirectories);
+            var filesInFolder = Directory.GetFiles(directory, "", SearchOption.AllDirectories);
 
-            foreach (var path in System.IO.Directory.GetFiles(directory))
+            foreach (var path in Directory.GetFiles(directory))
             {
-                if (IsMediaFile(path.ToString()))
+                if (IsMediaFile(path))
                     files.Add(MasterFile.GetMasterFileFromFilepath(path));
             }
 
-            foreach (var subdirectory in System.IO.Directory.EnumerateDirectories(directory))
+            foreach (var subdirectory in Directory.EnumerateDirectories(directory))
             {
-                ExtractFiles(subdirectory);  
+                ExtractFiles(subdirectory);
             }
         }
 
-        private static string[] mediaExtensions = 
+        private static string[] mediaExtensions =
         {
             ".AAC", ".AIFF", ".APE", ".ASF", ".AA", ".AAX", ".FLAC", ".MKA", ".M4A", ".MP3",
             ".MPC", ".OGG", ".RIFF", ".WV"
