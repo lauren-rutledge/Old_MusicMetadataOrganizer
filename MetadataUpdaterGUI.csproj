@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{A48B9450-AE9D-447F-9D0E-AC288E862C58}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>MetadataUpdater</RootNamespace>
+    <RootNamespace>MetadataUpdaterGUI</RootNamespace>
     <AssemblyName>MetadataUpdater</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -45,6 +45,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlacklistedSongsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BlacklistedSongsForm.Designer.cs">
+      <DependentUpon>BlacklistedSongsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="StartingForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -54,12 +60,17 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UpdateHelper.cs" />
-    <Compile Include="Updater.cs">
+    <Compile Include="UpdaterForm.cs">
       <SubType>Form</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Updater.Designer.cs">
-      <DependentUpon>Updater.cs</DependentUpon>
+    <Compile Include="UpdaterForm.Designer.cs">
+      <DependentUpon>UpdaterForm.cs</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+    <EmbeddedResource Include="BlacklistedSongsForm.resx">
+      <DependentUpon>BlacklistedSongsForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="StartingForm.resx">
       <DependentUpon>StartingForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -72,8 +83,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="Updater.resx">
-      <DependentUpon>Updater.cs</DependentUpon>
+    <EmbeddedResource Include="UpdaterForm.resx">
+      <DependentUpon>UpdaterForm.cs</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

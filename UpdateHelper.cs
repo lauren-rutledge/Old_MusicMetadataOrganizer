@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MetadataUpdater
+namespace MetadataUpdaterGUI
 {
     internal class UpdateHelper
     {

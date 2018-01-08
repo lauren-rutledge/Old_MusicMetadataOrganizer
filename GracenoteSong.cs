@@ -27,9 +27,9 @@ namespace MusicMetadataOrganizer
         public GracenoteSong(RESPONSE response)
         {
             _response = response;
-            _artist = StringCleaner.RemoveInvalidDirectoryChars(StringCleaner.ToActualTitleCase(response.ALBUM.ARTIST));
-            _album = StringCleaner.RemoveInvalidDirectoryChars(StringCleaner.ToActualTitleCase(response.ALBUM.TITLE));
-            _title = StringCleaner.RemoveInvalidFileNameCharacters(StringCleaner.ToActualTitleCase(response.ALBUM.TRACK.TITLE));
+            _artist = StringCleaner.ToCleanTitleCase(response.ALBUM.ARTIST);
+            _album = StringCleaner.ToCleanTitleCase(response.ALBUM.TITLE);
+            _title = StringCleaner.ToCleanTitleCase(response.ALBUM.TRACK.TITLE);
             _track = response.ALBUM.TRACK.TRACK_NUM;
             _year = response.ALBUM.DATE;
             _genres = response.ALBUM.GENRE;

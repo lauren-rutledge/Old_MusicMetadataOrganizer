@@ -32,11 +32,13 @@
             this.checkMetadataButton = new System.Windows.Forms.Button();
             this.displayFilesBox = new System.Windows.Forms.TextBox();
             this.saveButton = new System.Windows.Forms.Button();
+            this.blacklistedSongsButton = new System.Windows.Forms.Button();
+            this.checkFileLocationButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // selectFilesButton
             // 
-            this.selectFilesButton.Location = new System.Drawing.Point(282, 398);
+            this.selectFilesButton.Location = new System.Drawing.Point(216, 398);
             this.selectFilesButton.Name = "selectFilesButton";
             this.selectFilesButton.Size = new System.Drawing.Size(128, 23);
             this.selectFilesButton.TabIndex = 1;
@@ -47,7 +49,7 @@
             // checkMetadataButton
             // 
             this.checkMetadataButton.Enabled = false;
-            this.checkMetadataButton.Location = new System.Drawing.Point(282, 427);
+            this.checkMetadataButton.Location = new System.Drawing.Point(350, 427);
             this.checkMetadataButton.Name = "checkMetadataButton";
             this.checkMetadataButton.Size = new System.Drawing.Size(128, 23);
             this.checkMetadataButton.TabIndex = 2;
@@ -60,6 +62,7 @@
             this.displayFilesBox.Location = new System.Drawing.Point(24, 12);
             this.displayFilesBox.Multiline = true;
             this.displayFilesBox.Name = "displayFilesBox";
+            this.displayFilesBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.displayFilesBox.Size = new System.Drawing.Size(644, 363);
             this.displayFilesBox.TabIndex = 3;
             this.displayFilesBox.Text = "No files selected.";
@@ -67,7 +70,7 @@
             // saveButton
             // 
             this.saveButton.Enabled = false;
-            this.saveButton.Location = new System.Drawing.Point(282, 456);
+            this.saveButton.Location = new System.Drawing.Point(216, 456);
             this.saveButton.Name = "saveButton";
             this.saveButton.Size = new System.Drawing.Size(128, 23);
             this.saveButton.TabIndex = 4;
@@ -75,11 +78,35 @@
             this.saveButton.UseVisualStyleBackColor = true;
             this.saveButton.Click += new System.EventHandler(this.SaveButton_Click);
             // 
+            // blacklistedSongsButton
+            // 
+            this.blacklistedSongsButton.Enabled = false;
+            this.blacklistedSongsButton.Location = new System.Drawing.Point(216, 427);
+            this.blacklistedSongsButton.Name = "blacklistedSongsButton";
+            this.blacklistedSongsButton.Size = new System.Drawing.Size(128, 23);
+            this.blacklistedSongsButton.TabIndex = 5;
+            this.blacklistedSongsButton.Text = "View blacklisted songs";
+            this.blacklistedSongsButton.UseVisualStyleBackColor = true;
+            this.blacklistedSongsButton.Click += new System.EventHandler(this.BlacklistedSongsButton_Click);
+            // 
+            // checkFileLocationButton
+            // 
+            this.checkFileLocationButton.Enabled = false;
+            this.checkFileLocationButton.Location = new System.Drawing.Point(350, 398);
+            this.checkFileLocationButton.Name = "checkFileLocationButton";
+            this.checkFileLocationButton.Size = new System.Drawing.Size(128, 23);
+            this.checkFileLocationButton.TabIndex = 6;
+            this.checkFileLocationButton.Text = "Check file location(s)";
+            this.checkFileLocationButton.UseVisualStyleBackColor = true;
+            this.checkFileLocationButton.Click += new System.EventHandler(this.CheckFileLocationButton_Click);
+            // 
             // StartingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(703, 508);
+            this.Controls.Add(this.checkFileLocationButton);
+            this.Controls.Add(this.blacklistedSongsButton);
             this.Controls.Add(this.saveButton);
             this.Controls.Add(this.displayFilesBox);
             this.Controls.Add(this.checkMetadataButton);
@@ -98,6 +125,8 @@
         private System.Windows.Forms.Button checkMetadataButton;
         private System.Windows.Forms.TextBox displayFilesBox;
         private System.Windows.Forms.Button saveButton;
+        private System.Windows.Forms.Button blacklistedSongsButton;
+        private System.Windows.Forms.Button checkFileLocationButton;
     }
 }
 

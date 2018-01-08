@@ -49,7 +49,7 @@ namespace MusicMetadataOrganizer
                 string errorMessage = $"Database.ExecuteSqlCommands() - Could not connect to the database. {ex.GetType()}: \"{ex.Message}\"";
                 if (ex is SqlException)
                 {
-                    var log = new LogWriter(errorMessage + "Try restarting the \"SQL Server (SQLEXPRESS)\" Windows Service.");
+                    var log = new LogWriter(errorMessage + " Try restarting the \"SQL Server (SQLEXPRESS)\" Windows Service.");
                 }
                 else
                 {
@@ -60,16 +60,26 @@ namespace MusicMetadataOrganizer
 
         public bool Contains(MasterFile file)
         {
-            var entryExists = false;
-            using (var connection = new SqlConnection(ConnectionString))
-            using (var cmd = new SqlCommand("SELECT COUNT(*) FROM dbo.TagLibFields WHERE (Filepath = @path)", connection))
+            try
             {
-                connection.Open();
-                cmd.Parameters.AddWithValue("@path", file.Filepath);
-                if ((int)cmd.ExecuteScalar() > 0)
-                    entryExists = true;
+                var entryExists = false;
+                using (var connection = new SqlConnection(ConnectionString))
+                using (var cmd = new SqlCommand("SELECT COUNT(*) FROM dbo.TagLibFields WHERE (Filepath = @path)", connection))
+                {
+                    connection.Open();
+                    cmd.Parameters.AddWithValue("@path", file.Filepath);
+                    if ((int)cmd.ExecuteScalar() > 0)
+                        entryExists = true;
+                }
+                return entryExists;
             }
-            return entryExists;
+            catch (Exception ex)
+            {
+                string errorMessage = $"Database.Contains() - Cannot determine whether or not the database contains {file}. " +
+                    $"{ex.GetType()} : \"{ex.Message}\"";
+                var log = new LogWriter(errorMessage);
+                throw ex;
+            }
         }
 
         public void DeleteAllRecords()

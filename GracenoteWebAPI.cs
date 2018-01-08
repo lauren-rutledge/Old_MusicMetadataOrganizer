@@ -78,9 +78,9 @@ namespace MusicMetadataOrganizer
             // Threw an unhandled NullReferenceException 
             return new Dictionary<string, bool>()
             {
-                { "Artist", file.TagLibProps["Artist"].ToString() == StringCleaner.ToActualTitleCase(ALBUM.ARTIST) ? true : false },
-                { "Album",  file.TagLibProps["Album"].ToString() == StringCleaner.ToActualTitleCase(ALBUM.TITLE) ? true : false },
-                { "Title", file.TagLibProps["Title"].ToString() == StringCleaner.ToActualTitleCase(ALBUM.TRACK.TITLE) ? true : false },
+                { "Artist", file.TagLibProps["Artist"].ToString() == StringCleaner.ToCleanTitleCase(ALBUM.ARTIST) ? true : false },
+                { "Album",  file.TagLibProps["Album"].ToString() == StringCleaner.ToCleanTitleCase(ALBUM.TITLE) ? true : false },
+                { "Title", file.TagLibProps["Title"].ToString() == StringCleaner.ToCleanTitleCase(ALBUM.TRACK.TITLE) ? true : false },
                 { "Track",  Convert.ToInt32(file.TagLibProps["Track"]) == ALBUM.TRACK.TRACK_NUM ? true : false },
                 { "Year", file.TagLibProps["Year"].ToString() == ALBUM.DATE ? true : false },
                 { "Genres", file.TagLibProps["Genres"].ToString() == ALBUM.GENRE ? true : false }

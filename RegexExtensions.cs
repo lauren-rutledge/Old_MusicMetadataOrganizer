@@ -23,14 +23,21 @@ namespace MusicMetadataOrganizer
             return source.Substring(0, match.Index) + match.Value.ToLower() + source.Substring(match.Index + match.Length);
         }
 
+        internal static string ReplaceFirstWithUpper(this Group group, string source)
+        {
+            string original = group.Value;
+            string replacement = original[0].ToString().ToUpper() + original.Substring(1);
+            return group.Replace(source, replacement);
+        }
+
         internal static string Replace(this Match match, string source, string replacement)
         {
             return source.Substring(0, match.Index) + replacement + source.Substring(match.Index + match.Length);
         }
 
-        internal static string Replace(this Group match, string source, string replacement)
+        internal static string Replace(this Group group, string source, string replacement)
         {
-            return source.Substring(0, match.Index) + replacement + source.Substring(match.Index + match.Length);
+            return source.Substring(0, group.Index) + replacement + source.Substring(group.Index + group.Length);
         }
     }
 }

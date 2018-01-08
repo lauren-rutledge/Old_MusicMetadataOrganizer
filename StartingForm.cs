@@ -1,4 +1,4 @@
-﻿using MetadataUpdater;
+﻿using MetadataUpdaterGUI;
 using MusicMetadataOrganizer;
 using System;
 using System.Collections.Generic;
@@ -26,18 +26,31 @@ namespace MetadataUpdaterGUI
             files.Clear();
             files = FileSearcher.ExtractFiles();
             displayFilesBox.Clear();
-            foreach (MasterFile file in files)
+            for (int i = 0; i < files.Count; i++)
             {
-                displayFilesBox.Text += file + Environment.NewLine;
+                if (i == files.Count - 1)
+                {
+                    displayFilesBox.Text += files[i];
+                }
+                else
+                {
+                    displayFilesBox.Text += files[i] + Environment.NewLine;
+                }
+                displayFilesBox.Refresh();
             }
+            // rearrange these when the form is ordered better
             checkMetadataButton.Enabled = true;
             saveButton.Enabled = false;
+            blacklistedSongsButton.Enabled = true;
+            checkFileLocationButton.Enabled = true;
         }
 
         private void CheckMetadataButton_Click(object sender, EventArgs e)
         {
             var updates = new List<UpdateHelper>();
             displayFilesBox.Clear();
+            displayFilesBox.Text = "Checking metadata, please wait..." + Environment.NewLine;
+            displayFilesBox.Refresh();
             foreach (MasterFile masterFile in files)
             {
                 if ((bool)masterFile.TagLibProps["IsCover"])
@@ -53,6 +66,7 @@ namespace MetadataUpdaterGUI
                 if (propertiesToVerify.Count() > 0)
                 {
                     displayFilesBox.Text += $"\"{masterFile}\" has new or different data. Updating... {Environment.NewLine}";
+                    displayFilesBox.Refresh();
                     var oldProps = new List<string>();
                     var newProps = new List<string>();
                     foreach (var property in propertiesToVerify)
@@ -75,7 +89,7 @@ namespace MetadataUpdaterGUI
                     }
                     var update = new UpdateHelper(masterFile, propertiesToVerify.ToList(), oldProps, newProps);
                     updates.Add(update);
-                    //masterFile.Update(songFromAPI, propertiesToVerify);
+                    masterFile.Update(songFromAPI, propertiesToVerify);
                 }
                 else
                 {
@@ -84,18 +98,59 @@ namespace MetadataUpdaterGUI
             }
             if (updates.Count > 0)
             {
-                var updater = new Updater(updates);
+                var updater = new UpdaterForm(updates);
             }
             saveButton.Enabled = true;
         }
 
         private void SaveButton_Click(object sender, EventArgs e)
         {
-            foreach (MasterFile file in files)
+            displayFilesBox.Clear();
+            for (int i = 0; i < files.Count; i++)
             {
-                file.Save();
-                displayFilesBox.Clear();
-                displayFilesBox.Text = $"\"{file}\" has been saved.";
+                files[i].Save();
+                if (i == files.Count - 1)
+                {
+                    displayFilesBox.Text += $"\"{files[i]}\" has been saved.";
+                }
+                else
+                {
+                    displayFilesBox.Text += $"\"{files[i]}\" has been saved. {Environment.NewLine}";
+                }
+                displayFilesBox.Refresh();
+            }
+            saveButton.Enabled = false;
+        }
+
+        private void BlacklistedSongsButton_Click(object sender, EventArgs e)
+        {
+            List<MasterFile> blacklistedSongs;
+            try
+            {
+                blacklistedSongs = UpdaterForm.AllFiles.Where(mf => mf.CheckForUpdates == false).ToList();
+                if (blacklistedSongs == null || blacklistedSongs.Count() == 0)
+                    MessageBox.Show("There are no blacklisted songs.");
+                var blacklistedSongsForm = new BlacklistedSongsForm(blacklistedSongs);
+
+            }
+            catch (ArgumentNullException)
+            {
+                MessageBox.Show("There are no blacklisted songs.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"{ex.Message} + {ex.GetType().ToString()}.");
+                throw ex;
+            }
+        }
+
+        private void CheckFileLocationButton_Click(object sender, EventArgs e)
+        {
+            displayFilesBox.Clear();
+            foreach (MasterFile masterFile in files)
+            {
+                masterFile.Save();
+                displayFilesBox.Text += $"{masterFile} has been moved to {masterFile.Filepath}. {Environment.NewLine}";
             }
         }
     }

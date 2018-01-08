@@ -9,57 +9,33 @@ namespace MusicMetadataOrganizer
 {
     public static class FileManipulator
     {
-        // Maybe make a better name that implies that this should be used if mult. files exist in currentDir
-        public static void RenameDirectory(MasterFile file, string currentDirectory, string newDirectory)
+        public static void RenameFolder(MasterFile file, string currentDirectory, string newDirectory)
         {
-            var currentDir = Directory.Exists(currentDirectory) ? new DirectoryInfo(currentDirectory) :
-               throw new IOException($"Cannot rename/move the source directory '{currentDirectory}'. It does not exist.");
-            if (DirectoryContainsMultipleFiles(currentDirectory))
-            {
-                try
-                {
-                    if (currentDirectory.Equals(newDirectory, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // Get this working
-                        List<MasterFile> files = FileSearcher.ExtractFilesFromFolder(currentDirectory).ToList();
-                        foreach (MasterFile mf in files)
-                        {
-                            mf.SysIOProps["Directory"] = newDirectory;
-                            mf.Filepath = Path.Combine(newDirectory, mf.SysIOProps["Name"].ToString());
-                        }
-                    }
-                    
-                    if (!Directory.Exists(newDirectory))
-                        Directory.CreateDirectory(newDirectory);
-                    var newFilepath = file.Filepath.Replace(currentDirectory, newDirectory);
-                    File.Move(file.Filepath, newFilepath);
-                }
-                catch (Exception ex)
-                {
-                    var log = new LogWriter($"FileManipulator.RenameDirectory - Can not rename (move) '{currentDirectory}' " +
-                        $"to '{newDirectory}'. {ex.GetType()}: \"{ex.Message}\"");
-                }
-            }
-            else
-                RenameDirectory(currentDir, newDirectory);
-        }
-
-        private static void RenameDirectory(DirectoryInfo currentDir, string newDirectory)
-        {
+            DirectoryInfo currentDir = Directory.Exists(currentDirectory) ? new DirectoryInfo(currentDirectory) :
+                throw new IOException($"Cannot rename/move the source directory '{currentDirectory}'. It does not exist.");
             try
             {
-                if (currentDir.FullName.Equals(newDirectory, StringComparison.OrdinalIgnoreCase))
+                if (!Directory.Exists(newDirectory))
                 {
-                    var newDir = new DirectoryInfo(newDirectory);
-                    var tempPath = newDirectory.Replace(newDir.Name, @"_temp\");
-                    currentDir.MoveTo(tempPath);
+                    Directory.CreateDirectory(newDirectory);
                 }
-                currentDir.MoveTo(newDirectory);
+                if (currentDirectory.Equals(newDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    var tempPath = newDirectory.Replace(newDirectory, @"_temp\");
+                    // If this ends up throwing an error, create the temp path first and use Directory.Move(); 
+                    // Make sure it gets deleted after the move
+                    currentDir.MoveTo(tempPath);
+                    file.Filepath = Path.Combine(tempPath, file.SysIOProps["Name"].ToString());
+                }
+                var newFilepath = file.Filepath.Replace(currentDirectory, newDirectory);
+                File.Move(file.Filepath, newFilepath);
+                file.Filepath = newFilepath;
+                file.SysIOProps["Directory"] = newDirectory;
             }
-            catch (Exception ex)
+            catch (IOException ex)
             {
-                var log = new LogWriter($"FileManipulator.RenameDirectory - Can not rename (move) '{currentDir.FullName}' " +
-                    $"to '{newDirectory}'. {ex.GetType()}: \"{ex.Message}\"");
+                var log = new LogWriter($"FileManipulator.RenameFolder - Can not rename (move) '{currentDirectory}' " +
+                        $"to '{newDirectory}'. {ex.GetType()}: \"{ex.Message}\"");
             }
         }
 
@@ -85,13 +61,40 @@ namespace MusicMetadataOrganizer
             }
         }
 
-        public static bool DirectoryContainsMultipleFiles(string currentDirectory)
+        public static void DeleteEmptyFolders(DirectoryInfo folder)
         {
-            // Repeating lines
-            var currentDir = Directory.Exists(currentDirectory) ? new DirectoryInfo(currentDirectory) :
-                throw new IOException($"Cannot rename/move the source directory '{currentDirectory}'. It does not exist.");
+            // Checks to see if the current folder has any files
+            List<FileInfo> files = folder.EnumerateFiles().Where(f => f.Extension != ".db").ToList();
+            if (files.Count() > 0)
+                return;
+            // Checks to see if the parent folder has any files
+            if (folder.Parent.EnumerateFiles().Count() > 0)
+            {
+                folder.Delete();
+                return;
+            }
 
-            return (currentDir.EnumerateFiles().Count() > 1) ? true : false;
+            bool deleteParentFolder = true;
+
+            // Iterates over the parent folder's children to see if any of them have files
+            foreach (DirectoryInfo directory in folder.Parent.EnumerateDirectories())
+            {
+                List<FileInfo> directoryFiles = directory.EnumerateFiles().Where(f => f.Extension != ".db").ToList();
+                if (directoryFiles.Count() > 0)
+                    deleteParentFolder = false;
+            }
+            if (deleteParentFolder)
+            {
+                try
+                {
+                    folder.Parent.Delete(true);
+                }
+                catch (IOException ex)
+                {
+                    var log = new LogWriter($"FileManipulator.DeleteEmptyParentFolder() - Can not delete '{folder.Parent.FullName}'. " +
+                                       $"{ex.GetType()}: \"{ex.Message}\"");
+                }
+            }
         }
     }
 }

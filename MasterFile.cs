@@ -218,9 +218,6 @@ namespace MusicMetadataOrganizer
             SysIOProps.Add("CreationTime", Convert.ToDateTime(SysIOFile.CreationTime));
             SysIOProps.Add("LastAccessTime", Convert.ToDateTime(SysIOFile.LastAccessTime));
             SysIOProps.Add("Size", SysIOFile.Length);
-
-            //SysIOProps.Add("ArtistFolder", );
-            //SysIOProps.Add("AlbumFolder", new DirectoryInfo(Path.GetDirectoryName(Filepath)).Name);
         }
 
         public void Update(GracenoteSong songFromAPI, IEnumerable<string> properties)
@@ -255,14 +252,9 @@ namespace MusicMetadataOrganizer
 
         public void Save()
         {
-            SaveToFile();
-            SaveToDatabase();
-        }
-
-        private void SaveToFile()
-        {
             SaveMetadata();
             SaveFileData();
+            SaveToDatabase();
         }
 
         // The commented out areas are functional, but are never actually updated/changed via api or
@@ -311,29 +303,48 @@ namespace MusicMetadataOrganizer
 
         private void SaveFileData()
         {
-            // DIRECTORY NAME
-            var directoryRegex = new Regex(@"([^\\]+)\\([^\\]+)$", RegexOptions.IgnoreCase);
-            var currentFolderName = directoryRegex.Match(Filepath).Groups[1].ToString();
-            // Might not need this cleaning validation since it already happens in the GracenoteSong shit
+            MoveToCorrectArtistLocation();
+            MoveToCorrectAlbumLocation();
+            RenameFile();
+        }
+
+        private void MoveToCorrectArtistLocation()
+        {
+            Regex directoryArtistRegex = new Regex(@"([^\\]+)\\([^\\]+)\\([^\\]+)$");
+            string currentArtistFolderName = directoryArtistRegex.Match(Filepath).Groups[1].ToString();
+            string validArtistFolderName = StringCleaner.RemoveInvalidDirectoryChars(TagLibProps["Artist"].ToString());
+            if (currentArtistFolderName != validArtistFolderName)
+            {
+                string currentDirectory = SysIOProps["Directory"].ToString();
+                string newDirectory = currentDirectory.Replace(currentArtistFolderName, validArtistFolderName);
+                FileManipulator.RenameFolder(this, currentDirectory, newDirectory);
+                FileManipulator.DeleteEmptyFolders(new DirectoryInfo(currentDirectory));
+            }
+        }
+
+        private void MoveToCorrectAlbumLocation()
+        {
+            Regex directoryAlbumRegex = new Regex(@"([^\\]+)\\([^\\]+)$");
+            var currentAlbumFolderName = directoryAlbumRegex.Match(Filepath).Groups[1].ToString();
             var validAlbumFolderName = StringCleaner.RemoveInvalidDirectoryChars(TagLibProps["Album"].ToString());
-            if (currentFolderName != validAlbumFolderName)
+            if (currentAlbumFolderName != validAlbumFolderName)
             {
                 var currentDirectory = SysIOProps["Directory"].ToString();
-                var newDirectory = currentDirectory.Replace(currentFolderName, validAlbumFolderName);
-                FileManipulator.RenameDirectory(this, currentDirectory, newDirectory);
-                Filepath = Filepath.Replace(currentFolderName, validAlbumFolderName);
-                SysIOProps["Directory"] = newDirectory;
+                var newDirectory = currentDirectory.Replace(currentAlbumFolderName, validAlbumFolderName);
+                FileManipulator.RenameFolder(this, currentDirectory, newDirectory);
+                FileManipulator.DeleteEmptyFolders(new DirectoryInfo(currentDirectory));
             }
+        }
 
-            // FILE NAME
+        private void RenameFile()
+        {
             var currentFileName = SysIOProps["Name"].ToString();
             var newFileName = TagLibProps["Title"].ToString() + SysIOProps["Extension"].ToString();
-            // Might not need this cleaning validation since it already happens in the GracenoteSong shit
-            newFileName = StringCleaner.RemoveInvalidFileNameCharacters(newFileName);
-            if (currentFileName != newFileName)
+            var validFileName = StringCleaner.RemoveInvalidFileNameCharacters(newFileName);
+            if (currentFileName != validFileName)
             {
-                FileManipulator.RenameFile(Filepath, newFileName);
-                SysIOProps["Name"] = newFileName;
+                FileManipulator.RenameFile(Filepath, validFileName);
+                SysIOProps["Name"] = validFileName;
             }
             Filepath = Path.Combine(SysIOProps["Directory"].ToString(), SysIOProps["Name"].ToString());
         }
