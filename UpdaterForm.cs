@@ -14,16 +14,19 @@ namespace MetadataUpdaterGUI
     public partial class UpdaterForm : Form
     {
         public static List<MasterFile> AllFiles;
+        public static List<UpdateHelper> Updates { get; set; }
+
+        // Refactor
         internal UpdaterForm(List<UpdateHelper> updates)
         {
             InitializeComponent();
             this.Show();
             pendingChangesListView.Items.Clear();
             SetupPendingChangesListView();
-
+            Updates = updates;
             var listViewItems = new List<ListViewItem>();
             AllFiles = new List<MasterFile>();
-            foreach (UpdateHelper update in updates)
+            foreach (UpdateHelper update in Updates)
             {
                 AllFiles.Add(update.File);
                 for (int i = 0; i < update.PropsToChange.Count(); i++)
@@ -83,8 +86,22 @@ namespace MetadataUpdaterGUI
                 {
                     var file = ConvertToMasterFile(item);
                     file.CheckForUpdates = false;
+                    UpdateHelper update = Updates.Where(u => u.File == file).First();
+                    string propertyToRemove = item.SubItems[1].Text;
+                    update.RemoveProperty(propertyToRemove);
+                    if (update.PropsToChange.Count == 0)
+                    {
+                        //var index = Updates.IndexOf(update);
+                        Updates.Remove(update);
+                    }
                 }
             }
+
+            for (int i = 0; i < Updates.Count; i++)
+            {
+                Updates[i].UpdateMasterFile();
+            }
+
             this.Close();
         }
 

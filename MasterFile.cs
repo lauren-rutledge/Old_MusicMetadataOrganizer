@@ -11,7 +11,7 @@ namespace MusicMetadataOrganizer
         public string Filepath { get; internal set; }
         public Dictionary<string, object> TagLibProps;
         public Dictionary<string, object> SysIOProps;
-        public bool CheckForUpdates;
+        public bool CheckForUpdates = true;
 
         private TagLib.File TagLibFile { get; set; }
         private FileInfo SysIOFile { get; set; }

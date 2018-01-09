@@ -1,13 +1,9 @@
-﻿using MusicMetadataOrganizer;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace MetadataUpdaterGUI
+namespace MusicMetadataOrganizer
 {
-    internal class UpdateHelper
+    public class UpdateHelper
     {
         private MasterFile _file;
         public MasterFile File { get { return _file; } }
@@ -24,6 +20,30 @@ namespace MetadataUpdaterGUI
             _propsToChange = propsToChange;
             _oldVals = oldVals;
             _newVals = newVals;
+        }
+
+        public void RemoveProperty(string property)
+        {
+            if (!_propsToChange.Contains(property))
+                throw new ArgumentException();
+            for (int i = 0; i < _propsToChange.Count; i++)
+            {
+                if (_propsToChange[i] == property)
+                {
+                    _propsToChange.RemoveAt(i);
+                    _oldVals.RemoveAt(i);
+                    _newVals.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
+        public void UpdateMasterFile()
+        {
+            for (int i = 0; i < _propsToChange.Count; i++)
+            {
+                _file.TagLibProps[_propsToChange[i]] = _newVals[i];
+            }
         }
     }
 }

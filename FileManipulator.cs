@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MusicMetadataOrganizer
 {
@@ -76,7 +74,7 @@ namespace MusicMetadataOrganizer
 
             bool deleteParentFolder = true;
 
-            // Iterates over the parent folder's children to see if any of them have files
+            // Iterates over the parent folder's subdirectories to see if any of them have files
             foreach (DirectoryInfo directory in folder.Parent.EnumerateDirectories())
             {
                 List<FileInfo> directoryFiles = directory.EnumerateFiles().Where(f => f.Extension != ".db").ToList();

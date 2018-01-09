@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.IO;
@@ -26,8 +23,7 @@ namespace MusicMetadataOrganizer
             result = LowercaseUnimportantWords(result);
             result = CapitalizeWordsAfterSymbols(result);
             result = LowercaseLetterAfterNumbers(result);
-            result = RenameFeatInconsistencies(result);
-            result = RenameFeatInconsistencies(result);
+            //result = RenameFeatInconsistencies(result);
             return result;
         }
 
@@ -81,11 +77,17 @@ namespace MusicMetadataOrganizer
             return result;
         }
 
+        /*
         private static string RenameFeatInconsistencies(string input)
         {
             Regex featuringAbbreviationsRegex = new Regex(@" (feat(uring|\.)?|ft) ", RegexOptions.IgnoreCase);
             return featuringAbbreviationsRegex.Replace(input, " ft. ");
         }
+        */
+
+        // More cleaning Regex
+        // If there is a -, make sure there is a space before and after it
+        // Ex, "Miseria Cantare - The Beginning" returns wrong from the API
 
         public static string RemoveInvalidDirectoryChars(string directory)
         {
@@ -122,9 +124,5 @@ namespace MusicMetadataOrganizer
             }
             return fileName;
         }
-        
-        // More cleaning Regex
-        // If there is a -, make sure there is a space before and after it
-        // Ex, "Miseria Cantare - The Beginning" returns wrong from the API
     }
 }

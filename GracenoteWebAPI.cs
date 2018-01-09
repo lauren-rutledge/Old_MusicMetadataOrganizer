@@ -11,12 +11,17 @@ namespace MusicMetadataOrganizer
         private static System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
         private const string destinationUrl = "https://c834201935.web.cddbp.net/webapi/xml/1.0/";
 
-        public static GracenoteSong Query(MasterFile file)
+
+        public static GracenoteSong Query(MasterFile file, bool includeAlbumInQuery = true)
         {
             var artist = file.TagLibProps["Artist"].ToString();
             var songTitle = file.TagLibProps["Title"].ToString();
             var album = file.TagLibProps["Album"].ToString();
-            var xml = XmlGenerator.CreateRequest(artist, songTitle, album);
+            var xml = string.Empty;
+            if (includeAlbumInQuery)
+                xml = XmlGenerator.CreateRequest(artist, songTitle, album);
+            else
+                xml = XmlGenerator.CreateRequest(artist, songTitle);
             var result = PostXmlData(xml);
             if (String.IsNullOrEmpty(result))
             {

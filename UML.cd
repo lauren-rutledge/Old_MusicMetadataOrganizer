@@ -10,14 +10,14 @@
   <Class Name="MusicMetadataOrganizer.FileSearcher">
     <Position X="7.25" Y="0.75" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>EAAAABAAAAAQAAACAQAAAAAAAAAAAAAAAAAAiAAAAAA=</HashCode>
+      <HashCode>EABAAAAAAAAQAAACAQAAAAAAAAAAAAAAAAAAiAAAAAA=</HashCode>
       <FileName>FileSearcher.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MusicMetadataOrganizer.FileManipulator">
     <Position X="7.25" Y="3.75" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAACAAAAAAAACAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAAAAAACAAA=</HashCode>
       <FileName>FileManipulator.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -38,26 +38,26 @@
   <Class Name="MusicMetadataOrganizer.MasterFile">
     <Position X="4.75" Y="0.75" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AEQAAN4gAAAABAgEgIAAAACAQAiAAIAgAEQIAAEAAgA=</HashCode>
+      <HashCode>AEYAAN4BAAAAhAgEgICAAACAQAiAAIAgAEQIAAEAAgA=</HashCode>
       <FileName>MasterFile.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MusicMetadataOrganizer.StringCleaner">
     <Position X="7.25" Y="5.25" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>ABAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAACAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAQAAAAAAAAgAAIAABAAAAAAKAAgAAAAAAAAA=</HashCode>
       <FileName>StringCleaner.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MusicMetadataOrganizer.XmlGenerator">
-    <Position X="0.5" Y="3.25" Width="1.75" />
+    <Position X="2.5" Y="7.5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAgCAAAAAAAAAAAAAAAgAAAAAAAAAA=</HashCode>
       <FileName>XmlGenerator.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MusicMetadataOrganizer.XmlParser">
-    <Position X="0.5" Y="5.25" Width="1.75" />
+    <Position X="4.5" Y="8" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAA=</HashCode>
       <FileName>XmlParser.cs</FileName>
@@ -76,6 +76,14 @@
       <HashCode>AAAAAAAAAAAAAIAAAAAAAAAEAAAABAAAAAAAAAAAAAA=</HashCode>
       <FileName>GracenoteWebAPI.cs</FileName>
     </TypeIdentifier>
+  </Class>
+  <Class Name="MusicMetadataOrganizer.GracenoteSong">
+    <Position X="0.5" Y="3.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQAABMBAAHAAgAIAAAIAAIAAIAAEIACACAAAIAA=</HashCode>
+      <FileName>GracenoteSong.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
   </Class>
   <Enum Name="MusicMetadataOrganizer.StatementType" Collapsed="true">
     <Position X="2.5" Y="6.75" Width="1.75" />

@@ -1,13 +1,8 @@
-﻿using MetadataUpdaterGUI;
-using MusicMetadataOrganizer;
+﻿using MusicMetadataOrganizer;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace MetadataUpdaterGUI
@@ -42,52 +37,41 @@ namespace MetadataUpdaterGUI
             checkMetadataButton.Enabled = true;
             saveButton.Enabled = false;
             blacklistedSongsButton.Enabled = true;
-            checkFileLocationButton.Enabled = true;
         }
 
         private void CheckMetadataButton_Click(object sender, EventArgs e)
         {
-            var updates = new List<UpdateHelper>();
             displayFilesBox.Clear();
             displayFilesBox.Text = "Checking metadata, please wait..." + Environment.NewLine;
             displayFilesBox.Refresh();
+            List<UpdateHelper> updates = ProcessMasterFileUpdates();
+            if (updates.Count > 0)
+            {
+                var updater = new UpdaterForm(updates);
+            }
+            saveButton.Enabled = true;
+        }
+
+        private List<UpdateHelper> ProcessMasterFileUpdates()
+        {
+            var updates = new List<UpdateHelper>();
             foreach (MasterFile masterFile in files)
             {
-                if ((bool)masterFile.TagLibProps["IsCover"])
+                if ((bool)masterFile.TagLibProps["IsCover"] || masterFile.CheckForUpdates == false)
                     continue;
-                // if (file.CheckForUpdates == false)
-                //    continue;
-                var songFromAPI = GracenoteWebAPI.Query(masterFile);
+                GracenoteSong songFromAPI = masterFile.TagLibProps["Album"].ToString() == "Singles" ? 
+                    GracenoteWebAPI.Query(masterFile, includeAlbumInQuery: false) : 
+                    GracenoteWebAPI.Query(masterFile, includeAlbumInQuery: true);
                 var results = songFromAPI.CheckMetadataEquality(masterFile);
-                // Do this part in the mf.update method
                 var propertiesToVerify = results.Where(pair => pair.Value == false)
                   .Where(pair => pair.Key == "Artist" || pair.Key == "Album" || pair.Key == "Title")
                   .Select(pair => pair.Key);
+
                 if (propertiesToVerify.Count() > 0)
                 {
                     displayFilesBox.Text += $"\"{masterFile}\" has new or different data. Updating... {Environment.NewLine}";
                     displayFilesBox.Refresh();
-                    var oldProps = new List<string>();
-                    var newProps = new List<string>();
-                    foreach (var property in propertiesToVerify)
-                    {
-                        oldProps.Add(masterFile.TagLibProps[property].ToString());
-                        switch (property)
-                        {
-                            case "Artist":
-                                newProps.Add(songFromAPI.Artist);
-                                break;
-                            case "Album":
-                                newProps.Add(songFromAPI.Album);
-                                break;
-                            case "Title":
-                                newProps.Add(songFromAPI.Title);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    var update = new UpdateHelper(masterFile, propertiesToVerify.ToList(), oldProps, newProps);
+                    UpdateHelper update = CreateUpdateHelper(masterFile, songFromAPI, propertiesToVerify);
                     updates.Add(update);
                     masterFile.Update(songFromAPI, propertiesToVerify);
                 }
@@ -96,15 +80,37 @@ namespace MetadataUpdaterGUI
                     displayFilesBox.Text += $"\"{masterFile}\" has no new or different data. Not updating. {Environment.NewLine}";
                 }
             }
-            if (updates.Count > 0)
+            return updates;
+        }
+
+        private static UpdateHelper CreateUpdateHelper(MasterFile masterFile, GracenoteSong songFromAPI, IEnumerable<string> propertiesToVerify)
+        {
+            var oldProps = new List<string>();
+            var newProps = new List<string>();
+            foreach (var property in propertiesToVerify)
             {
-                var updater = new UpdaterForm(updates);
+                oldProps.Add(masterFile.TagLibProps[property].ToString());
+                switch (property)
+                {
+                    case "Artist":
+                        newProps.Add(songFromAPI.Artist);
+                        break;
+                    case "Album":
+                        newProps.Add(songFromAPI.Album);
+                        break;
+                    case "Title":
+                        newProps.Add(songFromAPI.Title);
+                        break;
+                    default:
+                        break;
+                }
             }
-            saveButton.Enabled = true;
+            return new UpdateHelper(masterFile, propertiesToVerify.ToList(), oldProps, newProps);
         }
 
         private void SaveButton_Click(object sender, EventArgs e)
         {
+            /*
             displayFilesBox.Clear();
             for (int i = 0; i < files.Count; i++)
             {
@@ -117,6 +123,21 @@ namespace MetadataUpdaterGUI
                 {
                     displayFilesBox.Text += $"\"{files[i]}\" has been saved. {Environment.NewLine}";
                 }
+                displayFilesBox.Refresh();
+            }
+            saveButton.Enabled = false;
+            */
+
+            displayFilesBox.Clear();
+            for (int i = 0; i < UpdaterForm.Updates.Count; i++)
+            {
+                //if (UpdaterForm.Updates[i] == null)
+                //    continue;
+                UpdaterForm.Updates[i].File.Save();
+                if (i == UpdaterForm.Updates.Count - 1)
+                    displayFilesBox.Text += $"\"{UpdaterForm.Updates[i].File}\" has been saved.";
+                else
+                    displayFilesBox.Text += $"\"{UpdaterForm.Updates[i].File}\" has been saved. {Environment.NewLine}";
                 displayFilesBox.Refresh();
             }
             saveButton.Enabled = false;
@@ -141,16 +162,6 @@ namespace MetadataUpdaterGUI
             {
                 MessageBox.Show($"{ex.Message} + {ex.GetType().ToString()}.");
                 throw ex;
-            }
-        }
-
-        private void CheckFileLocationButton_Click(object sender, EventArgs e)
-        {
-            displayFilesBox.Clear();
-            foreach (MasterFile masterFile in files)
-            {
-                masterFile.Save();
-                displayFilesBox.Text += $"{masterFile} has been moved to {masterFile.Filepath}. {Environment.NewLine}";
             }
         }
     }

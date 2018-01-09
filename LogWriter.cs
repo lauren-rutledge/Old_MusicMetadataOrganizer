@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MusicMetadataOrganizer
 {
-    internal class LogWriter
+    public class LogWriter
     {
         private string m_exePath = "";
-        internal LogWriter(string logMessage)
+        public LogWriter(string logMessage)
         {
             LogWrite(logMessage);
         }

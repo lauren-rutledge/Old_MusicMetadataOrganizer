@@ -14,17 +14,14 @@ namespace MusicMetadataOrganizer
         [STAThread]
         public static List<MasterFile> ExtractFiles()
         {
-            //var spinner = new ConsoleSpinner();
             SelectDirectory();
-            //spinner.Start();
             ExtractFiles(_directory);
-            //spinner.Stop();
             return files;
         }
 
         internal static IEnumerable<MasterFile> ExtractFilesFromFolder(string directory)
         {
-            foreach (var path in Directory.GetFiles(directory))
+            foreach (var path in Directory.EnumerateFiles(directory))
             {
                 if (IsMediaFile(path))
                     yield return MasterFile.GetMasterFileFromFilepath(path);
@@ -48,9 +45,9 @@ namespace MusicMetadataOrganizer
 
         private static void ExtractFiles(string directory)
         {
-            var filesInFolder = Directory.GetFiles(directory, "", SearchOption.AllDirectories);
+            var filesInFolder = Directory.EnumerateFiles(directory, "", SearchOption.AllDirectories);
 
-            foreach (var path in Directory.GetFiles(directory))
+            foreach (var path in Directory.EnumerateFiles(directory))
             {
                 if (IsMediaFile(path))
                     files.Add(MasterFile.GetMasterFileFromFilepath(path));

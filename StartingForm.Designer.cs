@@ -33,7 +33,6 @@
             this.displayFilesBox = new System.Windows.Forms.TextBox();
             this.saveButton = new System.Windows.Forms.Button();
             this.blacklistedSongsButton = new System.Windows.Forms.Button();
-            this.checkFileLocationButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // selectFilesButton
@@ -89,23 +88,11 @@
             this.blacklistedSongsButton.UseVisualStyleBackColor = true;
             this.blacklistedSongsButton.Click += new System.EventHandler(this.BlacklistedSongsButton_Click);
             // 
-            // checkFileLocationButton
-            // 
-            this.checkFileLocationButton.Enabled = false;
-            this.checkFileLocationButton.Location = new System.Drawing.Point(350, 398);
-            this.checkFileLocationButton.Name = "checkFileLocationButton";
-            this.checkFileLocationButton.Size = new System.Drawing.Size(128, 23);
-            this.checkFileLocationButton.TabIndex = 6;
-            this.checkFileLocationButton.Text = "Check file location(s)";
-            this.checkFileLocationButton.UseVisualStyleBackColor = true;
-            this.checkFileLocationButton.Click += new System.EventHandler(this.CheckFileLocationButton_Click);
-            // 
             // StartingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(703, 508);
-            this.Controls.Add(this.checkFileLocationButton);
             this.Controls.Add(this.blacklistedSongsButton);
             this.Controls.Add(this.saveButton);
             this.Controls.Add(this.displayFilesBox);
@@ -126,7 +113,6 @@
         private System.Windows.Forms.TextBox displayFilesBox;
         private System.Windows.Forms.Button saveButton;
         private System.Windows.Forms.Button blacklistedSongsButton;
-        private System.Windows.Forms.Button checkFileLocationButton;
     }
 }
 
